@@ -1,14 +1,19 @@
 package OOP.ClassNObject.Exerciase;
+import java.util.Scanner;
 
 public class StudentApp {
     public static void main(String[] args) {
         StudentService studentService = new StudentService();
-        Student student = studentService.createStudent();
+        Scanner scan = new Scanner(System.in);
 
+        
+        // studentService.displayStudent(student);
+
+        System.out.print("Enter the number of students: ");
+        int numberOfStudents=scan.nextInt();
+        Student[] students = studentService.createMoreStudent(numberOfStudents);
         System.out.println("Student Details:");
-        System.out.println("Name: " + student.getName());
-        System.out.println("Age: " + student.getAge());
-        System.out.println("Address: " + student.getAddress());
-        System.out.println("Gmail: " + student.getGmail());
+        studentService.displayMoreStudent(students);
+
     }
 }
