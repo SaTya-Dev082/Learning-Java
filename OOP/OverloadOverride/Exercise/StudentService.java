@@ -1,13 +1,13 @@
 package OOP.OverloadOverride.Exercise;
 
-class RegistrationStudent {
+class Student {
     int id;
     String name;
     int age;
     String gmail;
     String address;
 
-    RegistrationStudent(int id, String name, int age, String gmail, String address) {
+    Student(int id, String name, int age, String gmail, String address) {
         this.id = id;
         this.name = name;
         this.age = age;
@@ -17,16 +17,16 @@ class RegistrationStudent {
 }
 
 class StudentService {
-    void register(RegistrationStudent... students) {
+    void register(Student... students) {
         sortByAge(students);
 
         int totalAge = 0;
-        RegistrationStudent oldest = students[0];
-        RegistrationStudent youngest = students[0];
+        Student oldest = students[0];
+        Student youngest = students[0];
 
         System.out.println("===== Student Registration System =====");
 
-        for (RegistrationStudent student : students) {
+        for (Student student : students) {
             System.out.println("ID: " + student.id);
             System.out.println("Name: " + student.name);
             System.out.println("Age: " + student.age);
@@ -55,11 +55,11 @@ class StudentService {
         checkDuplicateGmail(students);
     }
 
-    void sortByAge(RegistrationStudent... students) {
+    void sortByAge(Student... students) {
         for (int i = 0; i < students.length - 1; i++) {
             for (int j = i + 1; j < students.length; j++) {
                 if (students[i].age > students[j].age) {
-                    RegistrationStudent temp = students[i];
+                    Student temp = students[i];
                     students[i] = students[j];
                     students[j] = temp;
                 }
@@ -67,10 +67,10 @@ class StudentService {
         }
     }
 
-    void checkDuplicateGmail(RegistrationStudent... students) {
+    void checkDuplicateGmail(Student... students) {
         boolean hasDuplicate = false;
 
-        System.out.println("Duplicate Gmail:");
+        System.out.print("Duplicate Gmail : ");
 
         for (int i = 0; i < students.length; i++) {
             for (int j = i + 1; j < students.length; j++) {

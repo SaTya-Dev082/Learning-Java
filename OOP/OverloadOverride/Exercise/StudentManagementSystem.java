@@ -1,25 +1,25 @@
 package OOP.OverloadOverride.Exercise;
 
-class Student {
+class StudentA {
     String name;
     int age;
 
-    Student(String name, int age) {
+    StudentA(String name, int age) {
         this.name = name;
         this.age = age;
     }
 }
 
 public class StudentManagementSystem {
-    static void registerStudents(Student... students) {
+    static void registerStudents(StudentA... students) {
         int totalAge = 0;
-        Student oldest = students[0];
-        Student youngest = students[0];
+        StudentA oldest = students[0];
+        StudentA youngest = students[0];
 
         System.out.println("===== Student List =====");
 
         for (int i = 0; i < students.length; i++) {
-            Student student = students[i];
+            StudentA student = students[i];
 
             System.out.println((i + 1) + ". " + student.name + " (" + student.age + ")");
 
