@@ -1,5 +1,18 @@
 package Encapsulation;
 
+
+public class EncapsulationDemo {
+    public static void main(String[] args) {
+
+        User user = new User("Makara", 20);
+
+        System.out.println(user.getName());
+
+        System.out.println(user.getAge());
+
+    }
+}
+
 class User {
 
     private String name;
@@ -39,14 +52,4 @@ class User {
     }
 
 }
-public class EncapsulationDemo {
-    public static void main(String[] args) {
 
-        User user = new User("Makara", 20);
-
-        System.out.println(user.getName());
-
-        System.out.println(user.getAge());
-
-    }
-}

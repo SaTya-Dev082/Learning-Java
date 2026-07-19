@@ -1,0 +1,56 @@
+package Inheritance;
+
+public class InheritanceDemo {
+    public static void main(String[] args) {
+
+        Student student = new Student("Makara", 20, "Java Class");
+
+        student.showInfo();
+
+        student.study();
+
+    }
+}
+
+
+class Person {
+
+    protected String name;
+
+    protected int age;
+
+    public Person(String name, int age) {
+
+        this.name = name;
+
+        this.age = age;
+
+    }
+
+    public void showInfo() {
+
+        System.out.println(name + " - " + age);
+
+    }
+
+}
+
+class Student extends Person {
+
+    private String className;
+
+    public Student(String name, int age, String className) {
+
+        super(name, age);
+
+        this.className = className;
+
+    }
+
+    public void study() {
+
+        System.out.println(name + " is studying in " + className);
+
+    }
+
+}
