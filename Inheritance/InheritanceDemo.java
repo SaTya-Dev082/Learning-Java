@@ -1,5 +1,15 @@
 package Inheritance;
 
+// Definition:
+// Inheritance គឺ class មួយយក property/method ពី parent class។
+
+// Where use:
+// ពេល class ច្រើនមាន common field/method ដូចគ្នា។
+
+// When use:
+// ពេលមាន relationship “is-a”។
+// Example: Student is a Person, Teacher is a Person.
+
 public class InheritanceDemo {
     public static void main(String[] args) {
 

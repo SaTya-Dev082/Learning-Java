@@ -1,5 +1,14 @@
 package Encapsulation;
+// Definition:
+// Encapsulation គឺការលាក់ field/data មិនឲ្យ access directly ពីខាងក្រៅ class។ យើងប្រើ private field និង getter/setter។
 
+// Where use:
+// Model class, Entity class, DTO class.
+
+// When use:
+// ពេលចង់ protect data ឬ validate data មុន save។
+
+// Real example: User age មិនអាចតូចជាង 0។
 
 public class EncapsulationDemo {
     public static void main(String[] args) {
