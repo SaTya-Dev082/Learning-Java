@@ -1,0 +1,274 @@
+Java Annotation - Khmer Notes
+=============================
+
+មេរៀននេះរៀបចំជា text note សម្រាប់រៀន Java Advanced ជាភាសាខ្មែរ។
+
+1. Annotation គឺជាអ្វី?
+------------------------------------------------------------
+Annotation គឺជា metadata ដាក់លើ class, method, field, parameter។ វាប្រាប់ compiler/tool/framework ថា code មាន meaning អ្វី។
+
+Example:
+    @Override
+    public String toString() {
+        return "User";
+    }
+
+2. Why Use Annotation?
+------------------------------------------------------------
+Use for:
+    compiler checking
+    framework configuration
+    validation
+    testing
+    database mapping
+    API route mapping
+    runtime processing
+
+Examples:
+    @Override
+    @Deprecated
+    @FunctionalInterface
+    @RestController
+    @Service
+    @Repository
+    @Entity
+    @Test
+
+3. @Override
+------------------------------------------------------------
+    class Animal {
+        public void speak() {
+            System.out.println("Animal speaks");
+        }
+    }
+
+    class Dog extends Animal {
+        @Override
+        public void speak() {
+            System.out.println("Dog barks");
+        }
+    }
+
+Benefit:
+Compiler checks that method really overrides parent method.
+
+4. @Deprecated
+------------------------------------------------------------
+    class PaymentService {
+        @Deprecated
+        public void oldPay() {
+            System.out.println("Old payment");
+        }
+
+        public void newPay() {
+            System.out.println("New payment");
+        }
+    }
+
+Use when method/class is old and should not be used.
+
+5. @SuppressWarnings
+------------------------------------------------------------
+    @SuppressWarnings("rawtypes")
+    public void oldCode() {
+        java.util.ArrayList list = new java.util.ArrayList();
+    }
+
+Use carefully. Do not hide real problems.
+
+6. @FunctionalInterface
+------------------------------------------------------------
+    @FunctionalInterface
+    interface Greeting {
+        void sayHello();
+    }
+
+Ensures interface has exactly one abstract method. Useful for lambda.
+
+7. Meta-Annotations
+------------------------------------------------------------
+Meta-annotation = annotation used to define annotation.
+
+Important:
+    @Target
+    @Retention
+    @Documented
+    @Inherited
+    @Repeatable
+
+8. @Target
+------------------------------------------------------------
+@Target defines where annotation can be used.
+
+    import java.lang.annotation.ElementType;
+    import java.lang.annotation.Target;
+
+    @Target(ElementType.METHOD)
+    public @interface RunLog {
+    }
+
+Common ElementType:
+    TYPE
+    METHOD
+    FIELD
+    PARAMETER
+    CONSTRUCTOR
+
+9. @Retention
+------------------------------------------------------------
+@Retention defines how long annotation exists.
+
+    import java.lang.annotation.Retention;
+    import java.lang.annotation.RetentionPolicy;
+
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface RunLog {
+    }
+
+RetentionPolicy:
+    SOURCE  -> only source code
+    CLASS   -> compiled class, not runtime
+    RUNTIME -> available at runtime
+
+Use RUNTIME when reflection/framework needs to read it.
+
+10. Custom Annotation
+------------------------------------------------------------
+Create:
+
+    import java.lang.annotation.*;
+
+    @Target(ElementType.METHOD)
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface RunLog {
+        String value() default "Running method";
+    }
+
+Use:
+
+    class UserService {
+        @RunLog("Creating user")
+        public void createUser() {
+            System.out.println("User created");
+        }
+    }
+
+11. Read Annotation With Reflection
+------------------------------------------------------------
+    import java.lang.reflect.Method;
+
+    public class Main {
+        public static void main(String[] args) throws Exception {
+            Method method = UserService.class.getMethod("createUser");
+
+            if (method.isAnnotationPresent(RunLog.class)) {
+                RunLog runLog = method.getAnnotation(RunLog.class);
+                System.out.println(runLog.value());
+            }
+        }
+    }
+
+12. Custom Validation Annotation
+------------------------------------------------------------
+Create:
+    import java.lang.annotation.*;
+
+    @Target(ElementType.FIELD)
+    @Retention(RetentionPolicy.RUNTIME)
+    public @interface NotEmpty {
+        String message() default "Field cannot be empty";
+    }
+
+Use:
+    class RegisterRequest {
+        @NotEmpty(message = "Name is required")
+        private String name;
+
+        @NotEmpty(message = "Email is required")
+        private String email;
+
+        public RegisterRequest(String name, String email) {
+            this.name = name;
+            this.email = email;
+        }
+    }
+
+Simple validator:
+    import java.lang.reflect.Field;
+
+    class Validator {
+        public static void validate(Object object) throws Exception {
+            for (Field field : object.getClass().getDeclaredFields()) {
+                field.setAccessible(true);
+
+                if (field.isAnnotationPresent(NotEmpty.class)) {
+                    Object value = field.get(object);
+
+                    if (value == null || value.toString().isBlank()) {
+                        NotEmpty annotation = field.getAnnotation(NotEmpty.class);
+                        throw new RuntimeException(annotation.message());
+                    }
+                }
+            }
+        }
+    }
+
+13. Spring Boot Annotation Concept
+------------------------------------------------------------
+    @RestController
+    @RequestMapping("/api/users")
+    class UserController {
+
+        @GetMapping("/{id}")
+        public User getUser(@PathVariable Long id) {
+            return userService.getById(id);
+        }
+    }
+
+Meaning:
+    @RestController -> REST API controller
+    @RequestMapping -> base path
+    @GetMapping -> GET endpoint
+    @PathVariable -> value from URL
+
+14. Service/Repository/Entity Concept
+------------------------------------------------------------
+    @Service
+    class UserService { }
+
+    @Repository
+    class UserRepository { }
+
+    @Entity
+    @Table(name = "users")
+    class User {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long id;
+    }
+
+Meaning:
+    @Service -> business logic layer
+    @Repository -> database layer
+    @Entity -> database table mapping
+
+15. Common Mistakes
+------------------------------------------------------------
+- create custom annotation but forget @Retention(RUNTIME)
+- wrong @Target
+- think annotation works automatically
+- overuse custom annotations
+
+Important:
+Annotation alone does nothing unless compiler/framework/reflection reads it.
+
+16. Exercises
+------------------------------------------------------------
+1. Create @RunLog and read with reflection
+2. Create @RoleRequired("ADMIN")
+3. Create @NotEmpty field validation
+4. Create @MaxLength(value = 10)
+5. Explain @RestController, @Service, @Entity, @Override
+
+Summary:
+Annotation is metadata. It becomes powerful when framework or reflection reads it and performs logic based on it.

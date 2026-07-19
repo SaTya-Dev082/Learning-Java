@@ -1,0 +1,316 @@
+Java Real Professional Project Structure - Khmer Notes
+=====================================================
+
+មេរៀននេះរៀបចំជា text note សម្រាប់រៀន Java Advanced ជាភាសាខ្មែរ។
+
+1. Why Structure Matters
+------------------------------------------------------------
+When project grows, code in one Main.java becomes messy.
+Professional structure helps:
+    easy read
+    easy maintain
+    easy test
+    easy add feature
+    teamwork
+    scalability
+
+2. Maven Standard Structure
+------------------------------------------------------------
+    my-app
+     ├── pom.xml
+     └── src
+         ├── main
+         │   ├── java
+         │   │   └── com/example/app
+         │   └── resources
+         │       └── application.properties
+         └── test
+             └── java
+                 └── com/example/app
+
+Meaning:
+    pom.xml -> dependencies/build
+    src/main/java -> production code
+    src/main/resources -> config files
+    src/test/java -> tests
+
+3. Basic Layered Structure
+------------------------------------------------------------
+    com.example.app
+     ├── Main.java
+     ├── controller
+     │   └── UserController.java
+     ├── service
+     │   └── UserService.java
+     ├── repository
+     │   └── UserRepository.java
+     ├── model
+     │   └── User.java
+     ├── dto
+     │   ├── RegisterRequest.java
+     │   └── UserResponse.java
+     ├── mapper
+     │   └── UserMapper.java
+     ├── exception
+     │   └── UserNotFoundException.java
+     └── config
+         └── DatabaseConfig.java
+
+4. Request Flow
+------------------------------------------------------------
+    User Request
+        ↓
+    Controller
+        ↓
+    Service
+        ↓
+    Repository
+        ↓
+    Database
+
+Then response returns back.
+
+5. Controller Layer
+------------------------------------------------------------
+Responsibility:
+    receive request
+    call service
+    return response
+
+Do not put:
+    SQL
+    heavy business logic
+    payment logic
+    file processing logic
+
+Example:
+    class UserController {
+        private UserService userService;
+
+        public UserController(UserService userService) {
+            this.userService = userService;
+        }
+
+        public void register(String name, String email, String password) {
+            String result = userService.register(name, email, password);
+            System.out.println(result);
+        }
+    }
+
+6. Service Layer
+------------------------------------------------------------
+Responsibility:
+    business logic
+    validation
+    call repository
+    transaction logic
+    throw custom exceptions
+
+Example:
+    class UserService {
+        private UserRepository repository;
+        private EmailService emailService;
+
+        public UserService(UserRepository repository, EmailService emailService) {
+            this.repository = repository;
+            this.emailService = emailService;
+        }
+
+        public String register(String name, String email, String password) {
+            if (!email.contains("@")) {
+                throw new RuntimeException("Invalid email");
+            }
+
+            if (repository.existsByEmail(email)) {
+                throw new RuntimeException("Email already exists");
+            }
+
+            repository.save(new User(name, email, password));
+            emailService.sendWelcomeEmail(email);
+
+            return "Register success";
+        }
+    }
+
+7. Repository Layer
+------------------------------------------------------------
+Responsibility:
+    database CRUD
+    SQL/query
+    map database result to object
+
+Example:
+    import java.util.Optional;
+
+    interface UserRepository {
+        void save(User user);
+        Optional<User> findByEmail(String email);
+        boolean existsByEmail(String email);
+    }
+
+8. Model / Entity
+------------------------------------------------------------
+Model represents data.
+
+    class User {
+        private Long id;
+        private String name;
+        private String email;
+        private String password;
+
+        public User(String name, String email, String password) {
+            this.name = name;
+            this.email = email;
+            this.password = password;
+        }
+
+        public String getEmail() { return email; }
+    }
+
+9. DTO
+------------------------------------------------------------
+DTO = Data Transfer Object.
+Use DTO for request/response.
+
+Request:
+    class RegisterRequest {
+        private String name;
+        private String email;
+        private String password;
+    }
+
+Response:
+    class UserResponse {
+        private Long id;
+        private String name;
+        private String email;
+    }
+
+Important:
+Never return password in response.
+
+10. Mapper
+------------------------------------------------------------
+Mapper converts Entity <-> DTO.
+
+    class UserMapper {
+        public UserResponse toResponse(User user) {
+            return new UserResponse(user.getId(), user.getName(), user.getEmail());
+        }
+
+        public User toEntity(RegisterRequest request) {
+            return new User(request.getName(), request.getEmail(), request.getPassword());
+        }
+    }
+
+11. Exception Layer
+------------------------------------------------------------
+    class UserNotFoundException extends RuntimeException {
+        public UserNotFoundException(String message) {
+            super(message);
+        }
+    }
+
+    class EmailAlreadyExistsException extends RuntimeException {
+        public EmailAlreadyExistsException(String message) {
+            super(message);
+        }
+    }
+
+12. Config Layer
+------------------------------------------------------------
+Config contains database/app settings.
+
+    class DatabaseConfig {
+        public static final String URL = "jdbc:postgresql://localhost:5432/app";
+        public static final String USERNAME = "postgres";
+        public static final String PASSWORD = "password";
+    }
+
+13. Common Layer
+------------------------------------------------------------
+Common contains reusable classes:
+    ApiResponse<T>
+    PageResponse<T>
+    BaseException
+    DateUtils
+    StringUtils
+
+ApiResponse:
+    class ApiResponse<T> {
+        private boolean success;
+        private String message;
+        private T data;
+
+        public ApiResponse(boolean success, String message, T data) {
+            this.success = success;
+            this.message = message;
+            this.data = data;
+        }
+    }
+
+14. Feature-Based Structure
+------------------------------------------------------------
+For bigger project:
+
+    com.example.shop
+     ├── user
+     │   ├── UserController.java
+     │   ├── UserService.java
+     │   ├── UserRepository.java
+     │   ├── User.java
+     │   └── dto
+     ├── product
+     │   ├── ProductController.java
+     │   ├── ProductService.java
+     │   ├── ProductRepository.java
+     │   └── Product.java
+     ├── order
+     │   ├── OrderController.java
+     │   ├── OrderService.java
+     │   ├── OrderRepository.java
+     │   └── Order.java
+     └── common
+
+Layer-based is easier for beginner.
+Feature-based is better for larger apps.
+
+15. Real Register Flow
+------------------------------------------------------------
+    POST /api/users/register
+        ↓
+    UserController.register(request)
+        ↓
+    UserService.register(request)
+        ↓
+    UserRepository.existsByEmail(email)
+        ↓
+    UserRepository.save(user)
+        ↓
+    EmailService.sendWelcomeEmail(email)
+        ↓
+    UserMapper.toResponse(user)
+        ↓
+    ApiResponse.success(...)
+
+16. Common Mistakes
+------------------------------------------------------------
+- all code in Main or Controller
+- SQL in Service
+- business logic in Repository
+- return Entity with password
+- no DTO
+- no custom exception
+- no package organization
+- utility class contains business logic
+
+17. Exercises
+------------------------------------------------------------
+1. Create Student Management structure
+2. Create Shop feature-based structure
+3. Create ApiResponse<T>
+4. Create User model, DTO, Mapper
+5. Create UserService register flow
+
+Summary:
+Good project structure separates responsibility. It makes Java application scalable, testable, and easy to maintain.

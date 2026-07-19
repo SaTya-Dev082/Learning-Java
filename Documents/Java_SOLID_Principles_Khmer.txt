@@ -1,0 +1,276 @@
+Java SOLID Principles - Khmer Notes
+==================================
+
+មេរៀននេះរៀបចំជា text note សម្រាប់រៀន Java Advanced ជាភាសាខ្មែរ។
+
+1. SOLID គឺជាអ្វី?
+------------------------------------------------------------
+SOLID គឺជា principles 5 សម្រាប់សរសេរ OOP code ឲ្យ clean, scalable, testable, and maintainable។
+
+S = Single Responsibility
+O = Open/Closed
+L = Liskov Substitution
+I = Interface Segregation
+D = Dependency Inversion
+
+2. S - Single Responsibility Principle
+------------------------------------------------------------
+Class មួយគួរមាន responsibility តែមួយ។
+
+Bad:
+    class UserService {
+        public void register() {
+            // validate
+            // save database
+            // send email
+            // write log
+        }
+    }
+
+Better:
+    class UserValidator { void validate() { } }
+    class UserRepository { void save() { } }
+    class EmailService { void send() { } }
+
+    class UserService {
+        private UserValidator validator = new UserValidator();
+        private UserRepository repository = new UserRepository();
+        private EmailService emailService = new EmailService();
+
+        public void register() {
+            validator.validate();
+            repository.save();
+            emailService.send();
+        }
+    }
+
+3. O - Open/Closed Principle
+------------------------------------------------------------
+Open for extension, closed for modification.
+
+Bad:
+    class PaymentService {
+        public void pay(String type, double amount) {
+            if (type.equals("cash")) {
+                System.out.println("Cash");
+            } else if (type.equals("aba")) {
+                System.out.println("ABA");
+            }
+        }
+    }
+
+Problem:
+Add Wing requires editing PaymentService.
+
+Better:
+    interface PaymentMethod {
+        void pay(double amount);
+    }
+
+    class CashPayment implements PaymentMethod {
+        public void pay(double amount) { System.out.println("Cash: " + amount); }
+    }
+
+    class AbaPayment implements PaymentMethod {
+        public void pay(double amount) { System.out.println("ABA: " + amount); }
+    }
+
+    class PaymentService {
+        public void pay(PaymentMethod method, double amount) {
+            method.pay(amount);
+        }
+    }
+
+Add Wing:
+    class WingPayment implements PaymentMethod {
+        public void pay(double amount) { System.out.println("Wing: " + amount); }
+    }
+
+No need to modify PaymentService.
+
+4. L - Liskov Substitution Principle
+------------------------------------------------------------
+Child class should replace parent class without breaking behavior.
+
+Bad:
+    class Bird {
+        public void fly() { System.out.println("Flying"); }
+    }
+
+    class Ostrich extends Bird {
+        @Override
+        public void fly() {
+            throw new RuntimeException("Ostrich cannot fly");
+        }
+    }
+
+Better:
+    interface Bird {
+        void eat();
+    }
+
+    interface FlyingBird extends Bird {
+        void fly();
+    }
+
+    class Sparrow implements FlyingBird {
+        public void eat() { }
+        public void fly() { }
+    }
+
+    class Ostrich implements Bird {
+        public void eat() { }
+    }
+
+5. I - Interface Segregation Principle
+------------------------------------------------------------
+Do not force class to implement methods it does not use.
+
+Bad:
+    interface Worker {
+        void work();
+        void eat();
+        void sleep();
+    }
+
+    class Robot implements Worker {
+        public void work() { }
+        public void eat() { throw new RuntimeException(); }
+        public void sleep() { throw new RuntimeException(); }
+    }
+
+Better:
+    interface Workable { void work(); }
+    interface Eatable { void eat(); }
+    interface Sleepable { void sleep(); }
+
+    class Human implements Workable, Eatable, Sleepable {
+        public void work() { }
+        public void eat() { }
+        public void sleep() { }
+    }
+
+    class Robot implements Workable {
+        public void work() { }
+    }
+
+6. D - Dependency Inversion Principle
+------------------------------------------------------------
+High-level module should depend on abstraction, not concrete class.
+
+Bad:
+    class EmailNotification {
+        void send(String message) { System.out.println(message); }
+    }
+
+    class OrderService {
+        private EmailNotification notification = new EmailNotification();
+    }
+
+Better:
+    interface NotificationService {
+        void send(String message);
+    }
+
+    class EmailNotification implements NotificationService {
+        public void send(String message) {
+            System.out.println("Email: " + message);
+        }
+    }
+
+    class TelegramNotification implements NotificationService {
+        public void send(String message) {
+            System.out.println("Telegram: " + message);
+        }
+    }
+
+    class OrderService {
+        private NotificationService notificationService;
+
+        public OrderService(NotificationService notificationService) {
+            this.notificationService = notificationService;
+        }
+
+        public void createOrder() {
+            notificationService.send("Order created");
+        }
+    }
+
+7. Real Example: Checkout Service
+------------------------------------------------------------
+    interface PaymentMethod {
+        void pay(double amount);
+    }
+
+    interface OrderRepository {
+        void save(String orderId);
+    }
+
+    interface NotificationService {
+        void send(String message);
+    }
+
+    class AbaPayment implements PaymentMethod {
+        public void pay(double amount) {
+            System.out.println("ABA paid: " + amount);
+        }
+    }
+
+    class DatabaseOrderRepository implements OrderRepository {
+        public void save(String orderId) {
+            System.out.println("Save order: " + orderId);
+        }
+    }
+
+    class EmailNotification implements NotificationService {
+        public void send(String message) {
+            System.out.println("Email: " + message);
+        }
+    }
+
+    class CheckoutService {
+        private OrderRepository orderRepository;
+        private NotificationService notificationService;
+
+        public CheckoutService(OrderRepository orderRepository,
+                               NotificationService notificationService) {
+            this.orderRepository = orderRepository;
+            this.notificationService = notificationService;
+        }
+
+        public void checkout(String orderId, PaymentMethod paymentMethod, double amount) {
+            paymentMethod.pay(amount);
+            orderRepository.save(orderId);
+            notificationService.send("Order completed: " + orderId);
+        }
+    }
+
+8. Signs Your Code Violates SOLID
+------------------------------------------------------------
+- class too large
+- method has many if/else for type
+- child class throws unsupported exception
+- interface has too many unrelated methods
+- service creates dependencies with new everywhere
+- hard to test
+- controller contains SQL/business logic
+
+9. Practical Rules
+------------------------------------------------------------
+Controller -> request/response only
+Service -> business logic
+Repository -> database logic
+Use interface when implementation can change
+Prefer small focused interfaces
+Use polymorphism instead of many type if/else
+
+10. Exercises
+------------------------------------------------------------
+1. Split UserManager into Validator, Repository, EmailService
+2. Create PaymentMethod implementations
+3. Create NotificationService implementations
+4. Refactor big interface
+5. Create OrderService depending on interfaces
+
+Summary:
+SOLID helps Java code become clean, flexible, testable, and professional.

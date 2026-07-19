@@ -1,0 +1,257 @@
+Java Multithreading - Khmer Notes
+================================
+
+មេរៀននេះរៀបចំជា text note សម្រាប់រៀន Java Advanced ជាភាសាខ្មែរ។
+
+1. Multithreading គឺជាអ្វី?
+------------------------------------------------------------
+Thread គឺជា path of execution មួយក្នុង program។ Multithreading មានន័យថា program អាច run task ច្រើនក្នុងពេលជាមួយគ្នា។
+
+Example real world:
+- User checkout order
+- Main thread save order
+- Background thread send email
+- Background thread send notification
+
+2. Where / When Use
+------------------------------------------------------------
+Use Multithreading ពេលមាន task ដែលអាច run background ឬ run parallel:
+    send email
+    generate report
+    upload/download file
+    process image/video
+    scheduled job
+    notification
+    heavy calculation
+
+កុំប្រើ thread ច្រើនពេកដោយគ្មាន control។ Professional Java uses ExecutorService.
+
+3. Create Thread extends Thread
+------------------------------------------------------------
+    class MyThread extends Thread {
+        @Override
+        public void run() {
+            System.out.println("Running: " + Thread.currentThread().getName());
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            MyThread t = new MyThread();
+            t.start(); // create new thread
+
+            System.out.println("Main: " + Thread.currentThread().getName());
+        }
+    }
+
+Important:
+    t.start(); // correct
+    t.run();   // wrong for new thread; it runs like normal method
+
+4. Runnable
+------------------------------------------------------------
+    class EmailTask implements Runnable {
+        @Override
+        public void run() {
+            System.out.println("Sending email...");
+            System.out.println("Email sent");
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Thread thread = new Thread(new EmailTask());
+            thread.start();
+            System.out.println("Order completed");
+        }
+    }
+
+5. Runnable With Lambda
+------------------------------------------------------------
+    public class Main {
+        public static void main(String[] args) {
+            Thread thread = new Thread(() -> {
+                System.out.println("Background task running...");
+            });
+
+            thread.start();
+            System.out.println("Main continues...");
+        }
+    }
+
+6. sleep() and join()
+------------------------------------------------------------
+sleep() pauses current thread:
+    Thread.sleep(1000); // 1 second
+
+join() waits for another thread to finish:
+    Thread t = new Thread(() -> System.out.println("Task"));
+    t.start();
+    t.join();
+    System.out.println("Task finished, now continue");
+
+7. Race Condition
+------------------------------------------------------------
+Race condition កើតឡើងពេល threads ច្រើន update shared data ពេលតែមួយ។
+
+Bad:
+    class Counter {
+        int count = 0;
+        public void increment() {
+            count++;
+        }
+    }
+
+With two threads increment 1000 times each, expected 2000 but result may be wrong.
+
+8. synchronized
+------------------------------------------------------------
+Use synchronized to protect critical section.
+
+    class Counter {
+        int count = 0;
+
+        public synchronized void increment() {
+            count++;
+        }
+    }
+
+Now only one thread can enter increment() at a time.
+
+9. AtomicInteger
+------------------------------------------------------------
+    import java.util.concurrent.atomic.AtomicInteger;
+
+    class Counter {
+        AtomicInteger count = new AtomicInteger(0);
+
+        public void increment() {
+            count.incrementAndGet();
+        }
+    }
+
+AtomicInteger is good for thread-safe counter.
+
+10. volatile
+------------------------------------------------------------
+volatile helps visibility between threads for simple flags.
+
+    class AppState {
+        volatile boolean running = true;
+    }
+
+Use volatile for simple true/false state. Do not use volatile for count++.
+
+11. ExecutorService
+------------------------------------------------------------
+Professional way to manage thread pool.
+
+    import java.util.concurrent.ExecutorService;
+    import java.util.concurrent.Executors;
+
+    public class Main {
+        public static void main(String[] args) {
+            ExecutorService executor = Executors.newFixedThreadPool(3);
+
+            executor.submit(() -> System.out.println("Task 1"));
+            executor.submit(() -> System.out.println("Task 2"));
+            executor.submit(() -> System.out.println("Task 3"));
+
+            executor.shutdown();
+        }
+    }
+
+Why:
+- reuse threads
+- control number of threads
+- avoid creating too many threads
+
+12. Callable and Future
+------------------------------------------------------------
+Runnable has no return. Callable can return value.
+
+    import java.util.concurrent.*;
+
+    public class Main {
+        public static void main(String[] args) throws Exception {
+            ExecutorService executor = Executors.newSingleThreadExecutor();
+
+            Callable<Integer> task = () -> {
+                Thread.sleep(1000);
+                return 100;
+            };
+
+            Future<Integer> future = executor.submit(task);
+            Integer result = future.get();
+
+            System.out.println(result);
+            executor.shutdown();
+        }
+    }
+
+13. CompletableFuture
+------------------------------------------------------------
+Modern async style:
+
+    import java.util.concurrent.CompletableFuture;
+
+    public class Main {
+        public static void main(String[] args) {
+            CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> "User data");
+
+            future.thenAccept(data -> System.out.println(data));
+
+            System.out.println("Main continues");
+            future.join();
+        }
+    }
+
+14. Real Example: Order Checkout
+------------------------------------------------------------
+    import java.util.concurrent.ExecutorService;
+    import java.util.concurrent.Executors;
+
+    class OrderService {
+        private ExecutorService executor = Executors.newFixedThreadPool(2);
+
+        public void checkout(String orderId) {
+            System.out.println("Save order: " + orderId);
+            System.out.println("Payment success");
+
+            executor.submit(() -> sendEmail(orderId));
+            executor.submit(() -> sendNotification(orderId));
+
+            System.out.println("Return response to customer");
+        }
+
+        private void sendEmail(String orderId) {
+            System.out.println("Sending email for " + orderId);
+        }
+
+        private void sendNotification(String orderId) {
+            System.out.println("Sending notification for " + orderId);
+        }
+
+        public void shutdown() {
+            executor.shutdown();
+        }
+    }
+
+15. Common Mistakes
+------------------------------------------------------------
+- call run() instead of start()
+- forget executor.shutdown()
+- update shared data without synchronized/atomic
+- create too many threads manually
+- ignore InterruptedException
+
+16. Exercises
+------------------------------------------------------------
+1. Create two threads: numbers and letters
+2. Create EmailTask with Runnable
+3. Create Counter and fix race condition
+4. Use ExecutorService with 3 tasks
+5. Use Callable to return total price
+
+Summary:
+Multithreading helps background/parallel work, but shared data must be protected carefully.

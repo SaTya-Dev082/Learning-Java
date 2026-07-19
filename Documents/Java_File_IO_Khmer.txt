@@ -1,0 +1,233 @@
+Java File I/O - Khmer Notes
+==========================
+
+មេរៀននេះរៀបចំជា text note សម្រាប់រៀន Java Advanced ជាភាសាខ្មែរ។
+
+1. File I/O គឺជាអ្វី?
+------------------------------------------------------------
+File I/O = Input/Output with file.
+Input means read file. Output means write file.
+
+Use cases:
+    log file
+    invoice export
+    CSV export
+    config file
+    upload file path
+    read text/json file
+
+2. Important APIs
+------------------------------------------------------------
+Old API:
+    java.io.File
+    FileWriter
+    FileReader
+    BufferedReader
+    InputStream
+    OutputStream
+
+Modern API:
+    java.nio.file.Path
+    java.nio.file.Files
+
+Recommended:
+Use Path and Files for simple modern file operations.
+
+3. Create File
+------------------------------------------------------------
+    import java.io.File;
+    import java.io.IOException;
+
+    public class Main {
+        public static void main(String[] args) {
+            try {
+                File file = new File("invoice.txt");
+
+                if (file.createNewFile()) {
+                    System.out.println("File created");
+                } else {
+                    System.out.println("File already exists");
+                }
+            } catch (IOException e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+        }
+    }
+
+4. Write File With FileWriter
+------------------------------------------------------------
+    import java.io.FileWriter;
+    import java.io.IOException;
+
+    public class Main {
+        public static void main(String[] args) {
+            try (FileWriter writer = new FileWriter("invoice.txt")) {
+                writer.write("Invoice ID: INV-001\n");
+                writer.write("Customer: Makara\n");
+                writer.write("Total: $100\n");
+            } catch (IOException e) {
+                System.out.println("Write error: " + e.getMessage());
+            }
+        }
+    }
+
+try-with-resources automatically closes writer.
+
+5. Append File
+------------------------------------------------------------
+    try (FileWriter writer = new FileWriter("app.log", true)) {
+        writer.write("User logged in\n");
+    }
+
+true means append, not overwrite.
+
+6. Read File With BufferedReader
+------------------------------------------------------------
+    import java.io.*;
+
+    public class Main {
+        public static void main(String[] args) {
+            try (BufferedReader reader = new BufferedReader(new FileReader("invoice.txt"))) {
+                String line;
+
+                while ((line = reader.readLine()) != null) {
+                    System.out.println(line);
+                }
+            } catch (IOException e) {
+                System.out.println("Read error: " + e.getMessage());
+            }
+        }
+    }
+
+Good for reading large text line by line.
+
+7. Modern Write With Files.writeString()
+------------------------------------------------------------
+    import java.nio.file.Files;
+    import java.nio.file.Path;
+
+    public class Main {
+        public static void main(String[] args) throws Exception {
+            Path path = Path.of("note.txt");
+            Files.writeString(path, "Hello Java File I/O");
+        }
+    }
+
+8. Modern Read With Files.readString()
+------------------------------------------------------------
+    import java.nio.file.Files;
+    import java.nio.file.Path;
+
+    public class Main {
+        public static void main(String[] args) throws Exception {
+            String content = Files.readString(Path.of("note.txt"));
+            System.out.println(content);
+        }
+    }
+
+Good for small files.
+
+9. Read/Write Lines
+------------------------------------------------------------
+    import java.nio.file.*;
+    import java.util.*;
+
+    public class Main {
+        public static void main(String[] args) throws Exception {
+            List<String> lines = List.of("name,price", "Phone,500", "Laptop,900");
+            Files.write(Path.of("products.csv"), lines);
+
+            List<String> readLines = Files.readAllLines(Path.of("products.csv"));
+            readLines.forEach(System.out::println);
+        }
+    }
+
+10. Check, Create Directory, Copy, Move, Delete
+------------------------------------------------------------
+Check:
+    Files.exists(Path.of("invoice.txt"))
+
+Create directory:
+    Files.createDirectories(Path.of("uploads/images"))
+
+Copy:
+    Files.copy(source, target, StandardCopyOption.REPLACE_EXISTING)
+
+Move/Rename:
+    Files.move(source, target, StandardCopyOption.REPLACE_EXISTING)
+
+Delete:
+    Files.deleteIfExists(Path.of("old.txt"))
+
+11. Real Example: Export Orders CSV
+------------------------------------------------------------
+    import java.nio.file.*;
+    import java.util.*;
+
+    class Order {
+        private String id;
+        private String customer;
+        private double total;
+
+        public Order(String id, String customer, double total) {
+            this.id = id;
+            this.customer = customer;
+            this.total = total;
+        }
+
+        public String toCsv() {
+            return id + "," + customer + "," + total;
+        }
+    }
+
+    class OrderExportService {
+        public void exportToCsv(List<Order> orders, String fileName) {
+            List<String> lines = new ArrayList<>();
+            lines.add("Order ID,Customer,Total");
+
+            for (Order order : orders) {
+                lines.add(order.toCsv());
+            }
+
+            try {
+                Files.write(Path.of(fileName), lines);
+                System.out.println("Export success");
+            } catch (Exception e) {
+                throw new RuntimeException("Export failed: " + e.getMessage());
+            }
+        }
+    }
+
+12. Real Example: Simple Logger
+------------------------------------------------------------
+    import java.io.FileWriter;
+    import java.time.LocalDateTime;
+
+    class AppLogger {
+        public void log(String message) {
+            try (FileWriter writer = new FileWriter("app.log", true)) {
+                writer.write(LocalDateTime.now() + " - " + message + "\n");
+            } catch (Exception e) {
+                System.out.println("Log failed: " + e.getMessage());
+            }
+        }
+    }
+
+13. Common Mistakes
+------------------------------------------------------------
+- forget close file
+- read huge file with readString()
+- hard-code absolute path
+- ignore IOException
+- write CSV without escaping comma when real data can contain comma
+
+14. Exercises
+------------------------------------------------------------
+1. Create hello.txt and write Hello Java
+2. Read hello.txt line by line
+3. Append logs to app.log
+4. Export products.csv
+5. Create StudentExportService
+
+Summary:
+File I/O is important for logs, exports, configs, and file processing. Prefer Files/Path and try-with-resources.

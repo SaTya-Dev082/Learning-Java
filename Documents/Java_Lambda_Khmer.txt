@@ -1,0 +1,1219 @@
+Java Lambda Expression Lesson - Khmer Notes
+===========================================
+
+មេរៀននេះសម្រាប់រៀន Java Lambda Expression ពីគោលគំនិត ដល់ real examples ដែលប្រើក្នុង project ពិតៗ។
+
+------------------------------------------------------------
+1. Lambda គឺជាអ្វី?
+------------------------------------------------------------
+
+Lambda Expression គឺជា syntax ខ្លីសម្រាប់សរសេរ function/method ដែលគ្មានឈ្មោះ។
+
+វាធ្វើឲ្យ code ខ្លី និង clean ជាពិសេសពេលប្រើជាមួយ៖
+
+    Collections
+    Stream API
+    Functional Interface
+    Callback
+    Sorting
+    Filtering
+    Event handling
+
+Syntax ទូទៅ:
+
+    (parameters) -> {
+        // code
+    }
+
+Example:
+
+    name -> System.out.println(name)
+
+មានន័យថា:
+- receive parameter ឈ្មោះ name
+- print name ចេញ
+
+------------------------------------------------------------
+2. Before Lambda vs With Lambda
+------------------------------------------------------------
+
+Before Lambda:
+
+    interface Greeting {
+        void sayHello();
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Greeting greeting = new Greeting() {
+                @Override
+                public void sayHello() {
+                    System.out.println("Hello Java");
+                }
+            };
+
+            greeting.sayHello();
+        }
+    }
+
+នេះហៅថា Anonymous Class។ វាសរសេរវែង។
+
+With Lambda:
+
+    interface Greeting {
+        void sayHello();
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Greeting greeting = () -> System.out.println("Hello Java");
+
+            greeting.sayHello();
+        }
+    }
+
+Output:
+
+    Hello Java
+
+Lambda ធ្វើឲ្យ code ខ្លីជាងមុន។
+
+------------------------------------------------------------
+3. Lambda ប្រើបានជាមួយអ្វី?
+------------------------------------------------------------
+
+Lambda អាចប្រើបានតែជាមួយ Functional Interface។
+
+Functional Interface គឺជា interface ដែលមាន abstract method តែមួយ។
+
+Example:
+
+    @FunctionalInterface
+    interface Greeting {
+        void sayHello();
+    }
+
+មាន method តែមួយគឺ:
+
+    void sayHello();
+
+ដូច្នេះវាអាចប្រើ Lambda បាន។
+
+ចំណាំ:
+- @FunctionalInterface មិនមែន mandatory ទេ
+- ប៉ុន្តែគួរប្រើ ព្រោះ Java compiler នឹងជួយពិនិត្យថា interface នោះមាន abstract method តែមួយ
+
+------------------------------------------------------------
+4. Lambda With No Parameter
+------------------------------------------------------------
+
+    @FunctionalInterface
+    interface Message {
+        void show();
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Message message = () -> System.out.println("Welcome to Java Lambda");
+
+            message.show();
+        }
+    }
+
+ពន្យល់:
+
+    () -> System.out.println("Welcome to Java Lambda")
+
+() មានន័យថា method នេះគ្មាន parameter។
+
+------------------------------------------------------------
+5. Lambda With One Parameter
+------------------------------------------------------------
+
+    @FunctionalInterface
+    interface Printer {
+        void print(String text);
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Printer printer = text -> System.out.println(text);
+
+            printer.print("Hello Makara");
+        }
+    }
+
+Output:
+
+    Hello Makara
+
+ពេលមាន parameter តែមួយ អ្នកអាចមិនសរសេរ parentheses ក៏បាន:
+
+    text -> System.out.println(text)
+
+ឬសរសេរបែបនេះក៏បាន:
+
+    (text) -> System.out.println(text)
+
+------------------------------------------------------------
+6. Lambda With Multiple Parameters
+------------------------------------------------------------
+
+    @FunctionalInterface
+    interface Calculator {
+        int sum(int a, int b);
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Calculator calculator = (a, b) -> a + b;
+
+            int result = calculator.sum(10, 20);
+
+            System.out.println(result);
+        }
+    }
+
+Output:
+
+    30
+
+ពន្យល់:
+
+    (a, b) -> a + b
+
+មានន័យថា receive a និង b ហើយ return a + b។
+
+------------------------------------------------------------
+7. Lambda With Block Code
+------------------------------------------------------------
+
+បើមាន code ច្រើនជាង 1 line ត្រូវប្រើ {}។
+
+    @FunctionalInterface
+    interface Calculator {
+        int multiply(int a, int b);
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Calculator calculator = (a, b) -> {
+                int result = a * b;
+                return result;
+            };
+
+            System.out.println(calculator.multiply(5, 4));
+        }
+    }
+
+Output:
+
+    20
+
+ចំណាំ:
+- បើប្រើ {} ហើយ method មាន return type ត្រូវសរសេរ return។
+- បើមានតែ expression មួយ line អាចមិនសរសេរ return បាន។
+
+------------------------------------------------------------
+8. Lambda With Collections
+------------------------------------------------------------
+
+Lambda ត្រូវបានប្រើច្រើនជាមួយ List។
+
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> names = List.of("Makara", "Dara", "Sokha");
+
+            names.forEach(name -> System.out.println(name));
+        }
+    }
+
+Output:
+
+    Makara
+    Dara
+    Sokha
+
+Old style:
+
+    for (String name : names) {
+        System.out.println(name);
+    }
+
+Lambda style:
+
+    names.forEach(name -> System.out.println(name));
+
+------------------------------------------------------------
+9. Lambda For Filtering Data
+------------------------------------------------------------
+
+Example: show only active users.
+
+    import java.util.List;
+
+    class User {
+        String name;
+        boolean active;
+
+        public User(String name, boolean active) {
+            this.name = name;
+            this.active = active;
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            List<User> users = List.of(
+                    new User("Makara", true),
+                    new User("Dara", false),
+                    new User("Sokha", true)
+            );
+
+            users.stream()
+                    .filter(user -> user.active)
+                    .forEach(user -> System.out.println(user.name));
+        }
+    }
+
+Output:
+
+    Makara
+    Sokha
+
+ពន្យល់:
+
+    .filter(user -> user.active)
+
+មានន័យថា យកតែ user ដែល active == true។
+
+------------------------------------------------------------
+10. Lambda With Sorting
+------------------------------------------------------------
+
+Example: sort names alphabetically.
+
+    import java.util.ArrayList;
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> names = new ArrayList<>();
+
+            names.add("Sokha");
+            names.add("Makara");
+            names.add("Dara");
+
+            names.sort((a, b) -> a.compareTo(b));
+
+            System.out.println(names);
+        }
+    }
+
+Output:
+
+    [Dara, Makara, Sokha]
+
+Shorter with method reference:
+
+    names.sort(String::compareTo);
+
+------------------------------------------------------------
+11. Lambda With Object Sorting
+------------------------------------------------------------
+
+Example: sort products by price.
+
+    import java.util.ArrayList;
+    import java.util.List;
+
+    class Product {
+        String name;
+        double price;
+
+        public Product(String name, double price) {
+            this.name = name;
+            this.price = price;
+        }
+
+        public String toString() {
+            return name + " - $" + price;
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            List<Product> products = new ArrayList<>();
+
+            products.add(new Product("Phone", 500));
+            products.add(new Product("Laptop", 900));
+            products.add(new Product("Mouse", 20));
+
+            products.sort((p1, p2) -> Double.compare(p1.price, p2.price));
+
+            products.forEach(product -> System.out.println(product));
+        }
+    }
+
+Output:
+
+    Mouse - $20.0
+    Phone - $500.0
+    Laptop - $900.0
+
+------------------------------------------------------------
+12. Built-in Functional Interfaces
+------------------------------------------------------------
+
+Java មាន interface ស្រាប់សម្រាប់ Lambda។
+
+    Consumer<T>
+    - receive data, no return
+    - method: accept(T t)
+
+    Supplier<T>
+    - no input, return data
+    - method: get()
+
+    Predicate<T>
+    - receive data, return boolean
+    - method: test(T t)
+
+    Function<T, R>
+    - receive T, return R
+    - method: apply(T t)
+
+    BiFunction<T, U, R>
+    - receive 2 values, return R
+    - method: apply(T t, U u)
+
+------------------------------------------------------------
+13. Consumer Example
+------------------------------------------------------------
+
+Consumer ប្រើពេលចង់ receive data ហើយធ្វើអ្វីមួយ ប៉ុន្តែមិន return value។
+
+    import java.util.function.Consumer;
+
+    public class Main {
+        public static void main(String[] args) {
+            Consumer<String> printer = name -> System.out.println("Hello " + name);
+
+            printer.accept("Makara");
+            printer.accept("Dara");
+        }
+    }
+
+Output:
+
+    Hello Makara
+    Hello Dara
+
+Real example:
+
+    Consumer<String> logger = message -> System.out.println("LOG: " + message);
+
+------------------------------------------------------------
+14. Supplier Example
+------------------------------------------------------------
+
+Supplier គ្មាន input ប៉ុន្តែ return data។
+
+    import java.util.function.Supplier;
+
+    public class Main {
+        public static void main(String[] args) {
+            Supplier<String> tokenSupplier = () -> "token_123456";
+
+            String token = tokenSupplier.get();
+
+            System.out.println(token);
+        }
+    }
+
+Output:
+
+    token_123456
+
+Real examples:
+
+    Supplier<String> otpSupplier = () -> "123456";
+    Supplier<Double> randomDiscount = () -> 10.0;
+
+------------------------------------------------------------
+15. Predicate Example
+------------------------------------------------------------
+
+Predicate receive data ហើយ return true ឬ false។
+
+    import java.util.function.Predicate;
+
+    public class Main {
+        public static void main(String[] args) {
+            Predicate<Integer> isAdult = age -> age >= 18;
+
+            System.out.println(isAdult.test(20));
+            System.out.println(isAdult.test(15));
+        }
+    }
+
+Output:
+
+    true
+    false
+
+Real examples:
+
+    Predicate<String> isEmailValid = email -> email.contains("@");
+    Predicate<Double> isFreeShipping = total -> total >= 50;
+
+------------------------------------------------------------
+16. Function Example
+------------------------------------------------------------
+
+Function<T, R> receive type T ហើយ return type R។
+
+    import java.util.function.Function;
+
+    public class Main {
+        public static void main(String[] args) {
+            Function<String, Integer> getLength = text -> text.length();
+
+            int length = getLength.apply("Java");
+
+            System.out.println(length);
+        }
+    }
+
+Output:
+
+    4
+
+Real examples:
+
+    Function<String, String> toUpperCase = name -> name.toUpperCase();
+    Function<Double, Double> addVat = price -> price * 1.1;
+
+------------------------------------------------------------
+17. BiFunction Example
+------------------------------------------------------------
+
+BiFunction receive 2 parameters ហើយ return 1 value។
+
+    import java.util.function.BiFunction;
+
+    public class Main {
+        public static void main(String[] args) {
+            BiFunction<Integer, Integer, Integer> sum = (a, b) -> a + b;
+
+            System.out.println(sum.apply(10, 20));
+        }
+    }
+
+Output:
+
+    30
+
+Real example:
+
+    BiFunction<Double, Double, Double> calculateTotal =
+            (price, qty) -> price * qty;
+
+------------------------------------------------------------
+18. Real Example: Checkout System
+------------------------------------------------------------
+
+    import java.util.List;
+    import java.util.function.Function;
+    import java.util.function.Predicate;
+
+    class Product {
+        String name;
+        double price;
+
+        public Product(String name, double price) {
+            this.name = name;
+            this.price = price;
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            List<Product> products = List.of(
+                    new Product("Phone", 500),
+                    new Product("Mouse", 20),
+                    new Product("Laptop", 900)
+            );
+
+            Predicate<Product> expensiveProduct = product -> product.price >= 100;
+
+            Function<Product, String> productLabel =
+                    product -> product.name + " costs $" + product.price;
+
+            products.stream()
+                    .filter(expensiveProduct)
+                    .map(productLabel)
+                    .forEach(label -> System.out.println(label));
+        }
+    }
+
+Output:
+
+    Phone costs $500.0
+    Laptop costs $900.0
+
+Concept ប្រើក្នុងនេះ:
+
+    Predicate<Product> = condition/filter
+    Function<Product, String> = transform Product to String
+    forEach = print result
+
+------------------------------------------------------------
+19. Method Reference
+------------------------------------------------------------
+
+Method Reference គឺជា syntax ខ្លីជាង Lambda។
+
+Lambda:
+
+    names.forEach(name -> System.out.println(name));
+
+Method Reference:
+
+    names.forEach(System.out::println);
+
+Full example:
+
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> names = List.of("Makara", "Dara", "Sokha");
+
+            names.forEach(System.out::println);
+        }
+    }
+
+Output:
+
+    Makara
+    Dara
+    Sokha
+
+------------------------------------------------------------
+20. Method Reference Types
+------------------------------------------------------------
+
+Java method reference មានប្រភេទសំខាន់ៗ៖
+
+1. Static method reference
+
+    ClassName::staticMethodName
+
+Example:
+
+    import java.util.function.Function;
+
+    public class Main {
+        public static void main(String[] args) {
+            Function<String, Integer> parser = Integer::parseInt;
+
+            int number = parser.apply("100");
+
+            System.out.println(number);
+        }
+    }
+
+2. Instance method reference of object
+
+    object::methodName
+
+Example:
+
+    import java.util.function.Consumer;
+
+    class Logger {
+        void log(String message) {
+            System.out.println("LOG: " + message);
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Logger logger = new Logger();
+
+            Consumer<String> consumer = logger::log;
+
+            consumer.accept("User logged in");
+        }
+    }
+
+3. Instance method reference of class type
+
+    ClassName::instanceMethodName
+
+Example:
+
+    import java.util.List;
+
+    public class Main {
+        public static void main(String[] args) {
+            List<String> names = List.of("Makara", "Dara", "Sokha");
+
+            names.stream()
+                    .map(String::toUpperCase)
+                    .forEach(System.out::println);
+        }
+    }
+
+4. Constructor reference
+
+    ClassName::new
+
+Example:
+
+    import java.util.function.Function;
+
+    class User {
+        String name;
+
+        public User(String name) {
+            this.name = name;
+        }
+
+        public String toString() {
+            return name;
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Function<String, User> createUser = User::new;
+
+            User user = createUser.apply("Makara");
+
+            System.out.println(user);
+        }
+    }
+
+------------------------------------------------------------
+21. Lambda With Runnable
+------------------------------------------------------------
+
+Runnable គឺជា Functional Interface ដែលមាន method run() តែមួយ។
+
+Before Lambda:
+
+    public class Main {
+        public static void main(String[] args) {
+            Runnable task = new Runnable() {
+                @Override
+                public void run() {
+                    System.out.println("Task running...");
+                }
+            };
+
+            new Thread(task).start();
+        }
+    }
+
+With Lambda:
+
+    public class Main {
+        public static void main(String[] args) {
+            Runnable task = () -> System.out.println("Task running...");
+
+            new Thread(task).start();
+        }
+    }
+
+Output:
+
+    Task running...
+
+Real use:
+- background task
+- thread
+- async processing
+
+------------------------------------------------------------
+22. Lambda With Custom Validation
+------------------------------------------------------------
+
+    @FunctionalInterface
+    interface Validator<T> {
+        boolean validate(T value);
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Validator<String> emailValidator = email -> email.contains("@");
+            Validator<Integer> ageValidator = age -> age >= 18;
+
+            System.out.println(emailValidator.validate("test@gmail.com"));
+            System.out.println(ageValidator.validate(17));
+        }
+    }
+
+Output:
+
+    true
+    false
+
+------------------------------------------------------------
+23. Lambda With Strategy Pattern
+------------------------------------------------------------
+
+Lambda អាចជួយធ្វើ Strategy Pattern ឲ្យ code ខ្លី។
+
+    @FunctionalInterface
+    interface DiscountStrategy {
+        double applyDiscount(double total);
+    }
+
+    class CheckoutService {
+        public double checkout(double total, DiscountStrategy strategy) {
+            return strategy.applyDiscount(total);
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            CheckoutService service = new CheckoutService();
+
+            double normalDiscount = service.checkout(100, total -> total * 0.9);
+            double vipDiscount = service.checkout(100, total -> total * 0.8);
+
+            System.out.println(normalDiscount);
+            System.out.println(vipDiscount);
+        }
+    }
+
+Output:
+
+    90.0
+    80.0
+
+Concept:
+- normal user discount 10%
+- VIP user discount 20%
+- Logic ផ្លាស់ប្តូរបានដោយមិនចាំបាច់បង្កើត class ច្រើន
+
+------------------------------------------------------------
+24. Lambda With Comparator
+------------------------------------------------------------
+
+Comparator គឺជា Functional Interface សម្រាប់ sorting។
+
+    import java.util.ArrayList;
+    import java.util.Comparator;
+    import java.util.List;
+
+    class Student {
+        String name;
+        int score;
+
+        public Student(String name, int score) {
+            this.name = name;
+            this.score = score;
+        }
+
+        public String toString() {
+            return name + " - " + score;
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            List<Student> students = new ArrayList<>();
+
+            students.add(new Student("Makara", 90));
+            students.add(new Student("Dara", 80));
+            students.add(new Student("Sokha", 95));
+
+            students.sort((s1, s2) -> Integer.compare(s2.score, s1.score));
+
+            students.forEach(System.out::println);
+        }
+    }
+
+Output:
+
+    Sokha - 95
+    Makara - 90
+    Dara - 80
+
+Shorter:
+
+    students.sort(Comparator.comparingInt(student -> student.score));
+
+For descending:
+
+    students.sort(Comparator.comparingInt((Student student) -> student.score).reversed());
+
+------------------------------------------------------------
+25. Lambda Variable Capture
+------------------------------------------------------------
+
+Lambda អាចប្រើ variable ពីខាងក្រៅបាន ប៉ុន្តែ variable នោះត្រូវតែជា final ឬ effectively final។
+
+Example:
+
+    public class Main {
+        public static void main(String[] args) {
+            String prefix = "Hello";
+
+            Runnable task = () -> System.out.println(prefix + " Makara");
+
+            task.run();
+        }
+    }
+
+Output:
+
+    Hello Makara
+
+Wrong example:
+
+    public class Main {
+        public static void main(String[] args) {
+            String prefix = "Hello";
+
+            Runnable task = () -> System.out.println(prefix);
+
+            // prefix = "Hi"; // Error because prefix is used in lambda
+
+            task.run();
+        }
+    }
+
+Meaning:
+- effectively final = variable ដែល assign តែម្តង ហើយមិនបាន change value បន្ទាប់មកទៀត
+
+------------------------------------------------------------
+26. Lambda vs Anonymous Class
+------------------------------------------------------------
+
+Lambda:
+- shorter
+- clean
+- works only with functional interface
+- no separate class name
+- this keyword refers to surrounding class
+
+Anonymous class:
+- longer
+- can override multiple methods if interface/abstract class has many methods
+- creates a new anonymous class
+- this keyword refers to anonymous class itself
+
+Example with Lambda:
+
+    Greeting greeting = () -> System.out.println("Hello");
+
+Example with Anonymous Class:
+
+    Greeting greeting = new Greeting() {
+        @Override
+        public void sayHello() {
+            System.out.println("Hello");
+        }
+    };
+
+------------------------------------------------------------
+27. When Use Lambda?
+------------------------------------------------------------
+
+ប្រើ Lambda ពេល:
+
+1. Loop list data
+
+    names.forEach(name -> System.out.println(name));
+
+2. Filter data
+
+    users.stream().filter(user -> user.active);
+
+3. Sort data
+
+    products.sort((a, b) -> Double.compare(a.price, b.price));
+
+4. Transform data
+
+    users.stream().map(user -> user.name);
+
+5. Callback logic
+
+    button -> action
+
+6. Functional interface
+
+    Greeting greeting = () -> System.out.println("Hello");
+
+7. Strategy logic
+
+    total -> total * 0.9
+
+------------------------------------------------------------
+28. Lambda Rules
+------------------------------------------------------------
+
+No parameter:
+
+    () -> System.out.println("Hello")
+
+One parameter:
+
+    name -> System.out.println(name)
+
+One parameter with parentheses:
+
+    (name) -> System.out.println(name)
+
+Two parameters:
+
+    (a, b) -> a + b
+
+Multiple lines:
+
+    (a, b) -> {
+        int result = a + b;
+        return result;
+    }
+
+Explicit type:
+
+    (String name) -> System.out.println(name)
+
+Implicit type:
+
+    name -> System.out.println(name)
+
+ចំណាំ:
+- កុំ mix explicit និង implicit type:
+
+Wrong:
+
+    (String name, age) -> System.out.println(name + age)
+
+Correct:
+
+    (String name, Integer age) -> System.out.println(name + age)
+
+Correct:
+
+    (name, age) -> System.out.println(name + age)
+
+------------------------------------------------------------
+29. Common Mistakes
+------------------------------------------------------------
+
+Mistake 1: Use Lambda with interface that has more than one abstract method
+
+Wrong:
+
+    interface MyInterface {
+        void method1();
+        void method2();
+    }
+
+    // MyInterface obj = () -> System.out.println("Hello"); // Error
+
+Correct:
+
+    @FunctionalInterface
+    interface MyInterface {
+        void method1();
+    }
+
+Mistake 2: Forget return in block code
+
+Wrong:
+
+    Calculator calculator = (a, b) -> {
+        a + b; // Error
+    };
+
+Correct:
+
+    Calculator calculator = (a, b) -> {
+        return a + b;
+    };
+
+Correct shorter:
+
+    Calculator calculator = (a, b) -> a + b;
+
+Mistake 3: Change captured variable
+
+Wrong:
+
+    String message = "Hello";
+
+    Runnable r = () -> System.out.println(message);
+
+    message = "Hi"; // Error
+
+Correct:
+
+    String message = "Hello";
+
+    Runnable r = () -> System.out.println(message);
+
+------------------------------------------------------------
+30. Mini Exercises
+------------------------------------------------------------
+
+Exercise 1:
+Create interface:
+
+    @FunctionalInterface
+    interface Greeting {
+        void say(String name);
+    }
+
+Use lambda to print:
+
+    Hello Makara
+
+Exercise 2:
+Create calculator lambda:
+
+    @FunctionalInterface
+    interface MathOperation {
+        int operate(int a, int b);
+    }
+
+Create lambdas for:
+
+    sum
+    minus
+    multiply
+    divide
+
+Exercise 3:
+Use Predicate<Integer> to check:
+
+    isEven
+    isOdd
+    isAdult
+
+Exercise 4:
+Use Function<String, Integer> to get length of name.
+
+Exercise 5:
+Create list of products and use lambda to filter product price >= 100.
+
+Exercise 6:
+Create List<Student> and sort students by score descending.
+
+Exercise 7:
+Create DiscountStrategy functional interface and use lambda for:
+- normal user discount
+- VIP user discount
+- no discount
+
+------------------------------------------------------------
+31. Exercise Sample Answers
+------------------------------------------------------------
+
+Exercise 1 Answer:
+
+    @FunctionalInterface
+    interface Greeting {
+        void say(String name);
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Greeting greeting = name -> System.out.println("Hello " + name);
+
+            greeting.say("Makara");
+        }
+    }
+
+Exercise 2 Answer:
+
+    @FunctionalInterface
+    interface MathOperation {
+        int operate(int a, int b);
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            MathOperation sum = (a, b) -> a + b;
+            MathOperation minus = (a, b) -> a - b;
+            MathOperation multiply = (a, b) -> a * b;
+            MathOperation divide = (a, b) -> a / b;
+
+            System.out.println(sum.operate(10, 5));
+            System.out.println(minus.operate(10, 5));
+            System.out.println(multiply.operate(10, 5));
+            System.out.println(divide.operate(10, 5));
+        }
+    }
+
+Exercise 3 Answer:
+
+    import java.util.function.Predicate;
+
+    public class Main {
+        public static void main(String[] args) {
+            Predicate<Integer> isEven = number -> number % 2 == 0;
+            Predicate<Integer> isOdd = number -> number % 2 != 0;
+            Predicate<Integer> isAdult = age -> age >= 18;
+
+            System.out.println(isEven.test(10));
+            System.out.println(isOdd.test(10));
+            System.out.println(isAdult.test(20));
+        }
+    }
+
+Exercise 4 Answer:
+
+    import java.util.function.Function;
+
+    public class Main {
+        public static void main(String[] args) {
+            Function<String, Integer> getLength = name -> name.length();
+
+            System.out.println(getLength.apply("Makara"));
+        }
+    }
+
+------------------------------------------------------------
+32. Summary
+------------------------------------------------------------
+
+Lambda គឺជា syntax ខ្លីសម្រាប់សរសេរ function logic។
+
+Formula:
+
+    parameter -> expression
+
+    (parameters) -> expression
+
+    (parameters) -> {
+        statements;
+        return value;
+    }
+
+Concept ធំៗ:
+
+    Lambda works with Functional Interface
+    Functional Interface has only one abstract method
+    Lambda makes code shorter and cleaner
+    Lambda is used heavily with Collections and Stream API
+
+Important built-in interfaces:
+
+    Consumer<T>      -> receive data, no return
+    Supplier<T>      -> no input, return data
+    Predicate<T>     -> receive data, return boolean
+    Function<T, R>   -> receive T, return R
+    BiFunction<T,U,R> -> receive T and U, return R
+
+Final idea:
+Lambda ជួយឲ្យ Java code របស់យើង clean, short, flexible និង professional ជាពិសេសពេលប្រើជាមួយ Stream API។

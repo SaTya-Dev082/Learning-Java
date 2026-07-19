@@ -1,0 +1,461 @@
+Java Real Example: Order System Concept - Khmer Notes
+====================================================
+
+មេរៀននេះរៀបចំជា text note សម្រាប់រៀន Java Advanced ជាភាសាខ្មែរ។
+
+1. Order System Concept
+------------------------------------------------------------
+Order System handles checkout process when customer buys products.
+
+Flow:
+    Customer selects products
+        ↓
+    Checkout
+        ↓
+    Validate cart
+        ↓
+    Check stock
+        ↓
+    Calculate total
+        ↓
+    Process payment
+        ↓
+    Create order
+        ↓
+    Reduce stock
+        ↓
+    Send notification
+
+2. Main Models
+------------------------------------------------------------
+    Customer
+    Product
+    CartItem
+    Order
+    OrderItem
+    Payment
+    Invoice
+
+Relationship:
+    Customer has many Orders
+    Order has many OrderItems
+    OrderItem stores product snapshot
+    Order has status and payment
+
+3. Product
+------------------------------------------------------------
+    class Product {
+        private Long id;
+        private String name;
+        private double price;
+        private int stock;
+
+        public Product(Long id, String name, double price, int stock) {
+            this.id = id;
+            this.name = name;
+            this.price = price;
+            this.stock = stock;
+        }
+
+        public Long getId() { return id; }
+        public String getName() { return name; }
+        public double getPrice() { return price; }
+        public int getStock() { return stock; }
+
+        public boolean hasEnoughStock(int quantity) {
+            return stock >= quantity;
+        }
+
+        public void reduceStock(int quantity) {
+            if (!hasEnoughStock(quantity)) {
+                throw new RuntimeException("Not enough stock");
+            }
+            stock -= quantity;
+        }
+    }
+
+4. CartItem
+------------------------------------------------------------
+    class CartItem {
+        private Product product;
+        private int quantity;
+
+        public CartItem(Product product, int quantity) {
+            if (quantity <= 0) {
+                throw new IllegalArgumentException("Quantity must be greater than zero");
+            }
+            this.product = product;
+            this.quantity = quantity;
+        }
+
+        public Product getProduct() { return product; }
+        public int getQuantity() { return quantity; }
+
+        public double getSubtotal() {
+            return product.getPrice() * quantity;
+        }
+    }
+
+5. OrderStatus Enum
+------------------------------------------------------------
+    enum OrderStatus {
+        PENDING,
+        PAID,
+        CANCELLED,
+        COMPLETED
+    }
+
+Enum prevents typo:
+    OrderStatus.PAID
+
+Better than:
+    "paidd"
+
+6. OrderItem
+------------------------------------------------------------
+    class OrderItem {
+        private Long productId;
+        private String productName;
+        private double price;
+        private int quantity;
+
+        public OrderItem(Long productId, String productName, double price, int quantity) {
+            this.productId = productId;
+            this.productName = productName;
+            this.price = price;
+            this.quantity = quantity;
+        }
+
+        public double getSubtotal() {
+            return price * quantity;
+        }
+    }
+
+Why store productName and price?
+Because product price/name may change later, but order history must keep old data.
+
+7. Order
+------------------------------------------------------------
+    import java.util.List;
+
+    class Order {
+        private String orderId;
+        private Long customerId;
+        private List<OrderItem> items;
+        private double total;
+        private OrderStatus status;
+
+        public Order(String orderId, Long customerId, List<OrderItem> items) {
+            if (items == null || items.isEmpty()) {
+                throw new IllegalArgumentException("Order must have items");
+            }
+            this.orderId = orderId;
+            this.customerId = customerId;
+            this.items = items;
+            this.total = calculateTotal();
+            this.status = OrderStatus.PENDING;
+        }
+
+        private double calculateTotal() {
+            double sum = 0;
+            for (OrderItem item : items) {
+                sum += item.getSubtotal();
+            }
+            return sum;
+        }
+
+        public void markPaid() {
+            this.status = OrderStatus.PAID;
+        }
+
+        public String getOrderId() { return orderId; }
+        public double getTotal() { return total; }
+    }
+
+8. Payment Polymorphism
+------------------------------------------------------------
+    interface PaymentMethod {
+        void pay(double amount);
+    }
+
+    class CashPayment implements PaymentMethod {
+        public void pay(double amount) {
+            System.out.println("Paid by cash: $" + amount);
+        }
+    }
+
+    class AbaPayment implements PaymentMethod {
+        public void pay(double amount) {
+            System.out.println("Paid by ABA: $" + amount);
+        }
+    }
+
+    class WingPayment implements PaymentMethod {
+        public void pay(double amount) {
+            System.out.println("Paid by Wing: $" + amount);
+        }
+    }
+
+9. PaymentFactory
+------------------------------------------------------------
+    class PaymentFactory {
+        public static PaymentMethod create(String type) {
+            if (type.equalsIgnoreCase("cash")) return new CashPayment();
+            if (type.equalsIgnoreCase("aba")) return new AbaPayment();
+            if (type.equalsIgnoreCase("wing")) return new WingPayment();
+            throw new IllegalArgumentException("Invalid payment type");
+        }
+    }
+
+10. Discount Strategy
+------------------------------------------------------------
+    interface DiscountStrategy {
+        double apply(double total);
+    }
+
+    class NoDiscount implements DiscountStrategy {
+        public double apply(double total) { return total; }
+    }
+
+    class PercentageDiscount implements DiscountStrategy {
+        private double percent;
+
+        public PercentageDiscount(double percent) {
+            this.percent = percent;
+        }
+
+        public double apply(double total) {
+            return total - (total * percent / 100);
+        }
+    }
+
+11. Repository Interfaces
+------------------------------------------------------------
+    import java.util.Optional;
+
+    interface ProductRepository {
+        Optional<Product> findById(Long id);
+        void update(Product product);
+    }
+
+    interface OrderRepository {
+        void save(Order order);
+        Optional<Order> findById(String orderId);
+    }
+
+Why:
+- Service depends on interface
+- Can use in-memory now
+- Can switch to JDBC later
+
+12. NotificationService
+------------------------------------------------------------
+    interface NotificationService {
+        void send(String message);
+    }
+
+    class EmailNotificationService implements NotificationService {
+        public void send(String message) {
+            System.out.println("Email: " + message);
+        }
+    }
+
+13. OrderService Checkout
+------------------------------------------------------------
+    import java.util.*;
+
+    class OrderService {
+        private ProductRepository productRepository;
+        private OrderRepository orderRepository;
+        private NotificationService notificationService;
+
+        public OrderService(ProductRepository productRepository,
+                            OrderRepository orderRepository,
+                            NotificationService notificationService) {
+            this.productRepository = productRepository;
+            this.orderRepository = orderRepository;
+            this.notificationService = notificationService;
+        }
+
+        public Order checkout(Long customerId,
+                              List<CartItem> cartItems,
+                              String paymentType,
+                              DiscountStrategy discountStrategy) {
+            if (cartItems == null || cartItems.isEmpty()) {
+                throw new RuntimeException("Cart is empty");
+            }
+
+            List<OrderItem> orderItems = new ArrayList<>();
+
+            for (CartItem cartItem : cartItems) {
+                Product product = productRepository.findById(cartItem.getProduct().getId())
+                    .orElseThrow(() -> new RuntimeException("Product not found"));
+
+                if (!product.hasEnoughStock(cartItem.getQuantity())) {
+                    throw new RuntimeException("Not enough stock for " + product.getName());
+                }
+
+                product.reduceStock(cartItem.getQuantity());
+                productRepository.update(product);
+
+                orderItems.add(new OrderItem(
+                    product.getId(),
+                    product.getName(),
+                    product.getPrice(),
+                    cartItem.getQuantity()
+                ));
+            }
+
+            String orderId = "ORD-" + UUID.randomUUID();
+            Order order = new Order(orderId, customerId, orderItems);
+
+            double finalTotal = discountStrategy.apply(order.getTotal());
+
+            PaymentMethod payment = PaymentFactory.create(paymentType);
+            payment.pay(finalTotal);
+
+            order.markPaid();
+            orderRepository.save(order);
+
+            notificationService.send("Order completed: " + order.getOrderId());
+
+            return order;
+        }
+    }
+
+14. Database Tables Concept
+------------------------------------------------------------
+    products
+        id
+        name
+        price
+        stock
+
+    orders
+        id
+        customer_id
+        total
+        status
+        created_at
+
+    order_items
+        id
+        order_id
+        product_id
+        product_name
+        price
+        quantity
+
+    payments
+        id
+        order_id
+        method
+        amount
+        status
+
+Important:
+order_items stores product snapshot.
+
+15. Transaction Concept
+------------------------------------------------------------
+Checkout should use transaction.
+
+Operations:
+    insert order
+    insert order_items
+    update stock
+    insert payment
+
+If one fails, rollback all.
+
+JDBC concept:
+    conn.setAutoCommit(false);
+
+    try {
+        // insert order
+        // insert items
+        // update stock
+        // insert payment
+        conn.commit();
+    } catch (Exception e) {
+        conn.rollback();
+    }
+
+16. Professional Package Structure
+------------------------------------------------------------
+    com.example.shop
+     ├── common
+     ├── product
+     │   ├── Product.java
+     │   ├── ProductRepository.java
+     │   └── ProductService.java
+     ├── order
+     │   ├── Order.java
+     │   ├── OrderItem.java
+     │   ├── OrderStatus.java
+     │   ├── OrderRepository.java
+     │   └── OrderService.java
+     ├── payment
+     │   ├── PaymentMethod.java
+     │   ├── AbaPayment.java
+     │   └── PaymentFactory.java
+     └── notification
+         └── NotificationService.java
+
+17. Java Concepts Used
+------------------------------------------------------------
+OOP:
+    Product, Order, Payment classes
+
+Encapsulation:
+    private fields, domain methods
+
+Polymorphism:
+    PaymentMethod, NotificationService, DiscountStrategy
+
+Optional:
+    findById returns Optional
+
+Exception:
+    Product not found, Not enough stock
+
+Collections:
+    List<CartItem>, List<OrderItem>
+
+Generics:
+    Optional<T>, List<T>, ApiResponse<T>
+
+Design Patterns:
+    Repository, Factory, Strategy, Service Layer
+
+SOLID:
+    SRP, OCP, DIP
+
+JDBC:
+    transaction, insert, update stock
+
+18. Common Mistakes
+------------------------------------------------------------
+- no transaction
+- no stock validation
+- payment if/else inside OrderService
+- order item does not store product price snapshot
+- no status enum
+- business logic in controller
+- no custom exceptions
+
+19. Exercises
+------------------------------------------------------------
+1. Create Product with stock logic
+2. Create CartItem and subtotal
+3. Create PaymentMethod implementations
+4. Create PaymentFactory
+5. Create DiscountStrategy
+6. Create Order and OrderItem
+7. Create ProductRepository and OrderRepository
+8. Create OrderService checkout
+9. Design database tables
+10. Add transaction concept
+
+Summary:
+Order System combines OOP, Optional, Exceptions, Collections, SOLID, Design Patterns, and Database logic. It is a strong real-world exercise for becoming professional Java backend developer.

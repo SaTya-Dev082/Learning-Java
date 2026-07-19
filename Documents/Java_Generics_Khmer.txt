@@ -1,0 +1,929 @@
+Java Generics Lesson - Khmer Notes
+=================================
+
+មេរៀននេះសម្រាប់រៀន Java Generics ពីគោលគំនិត ដល់ real examples ដែលប្រើក្នុង project ពិតៗ។
+
+------------------------------------------------------------
+1. Generic គឺជាអ្វី?
+------------------------------------------------------------
+
+Generic គឺជា feature ក្នុង Java ដែលអនុញ្ញាតឲ្យយើងបង្កើត class, method, interface ដែលអាចប្រើជាមួយ data type ផ្សេងៗបាន។
+
+ឧទាហរណ៍:
+
+    ArrayList<String> names = new ArrayList<>();
+    ArrayList<Integer> numbers = new ArrayList<>();
+
+ArrayList គឺជា generic class។ វាអាច store String, Integer, User, Product, Order បាន។
+
+------------------------------------------------------------
+2. Why Use Generic?
+------------------------------------------------------------
+
+Generic ជួយឲ្យ code មានគុណភាពល្អជាងមុន៖
+
+1. Type Safety
+   - កុំឲ្យដាក់ data type ខុស។
+   - Example: List<String> អាច add តែ String។
+
+2. Reusable Code
+   - Class ឬ method មួយ អាចប្រើជាមួយ type ច្រើនបាន។
+
+3. No Manual Casting
+   - មិនចាំបាច់ cast Object ដោយដៃ។
+
+------------------------------------------------------------
+3. Problem Without Generic
+------------------------------------------------------------
+
+Code មិនប្រើ Generic:
+
+    import java.util.ArrayList;
+
+    public class Main {
+        public static void main(String[] args) {
+            ArrayList list = new ArrayList();
+
+            list.add("Makara");
+            list.add(100);
+
+            String name = (String) list.get(0);
+            String wrong = (String) list.get(1); // Runtime error
+
+            System.out.println(name);
+            System.out.println(wrong);
+        }
+    }
+
+បញ្ហា:
+- list អាចដាក់ String ក៏បាន Integer ក៏បាន។
+- Error កើតឡើងពេល runtime មិនមែន compile time។
+
+------------------------------------------------------------
+4. With Generic
+------------------------------------------------------------
+
+    import java.util.ArrayList;
+
+    public class Main {
+        public static void main(String[] args) {
+            ArrayList<String> names = new ArrayList<>();
+
+            names.add("Makara");
+            names.add("Dara");
+
+            // names.add(100); // Compile error
+
+            String name = names.get(0);
+
+            System.out.println(name);
+        }
+    }
+
+លទ្ធផល:
+
+    Makara
+
+List នេះអាចដាក់តែ String ប៉ុណ្ណោះ។
+
+------------------------------------------------------------
+5. Generic Symbol Meaning
+------------------------------------------------------------
+
+T = Type
+E = Element
+K = Key
+V = Value
+N = Number
+
+Example:
+
+    class Box<T> { }
+    interface Repository<T, ID> { }
+    class Pair<K, V> { }
+
+------------------------------------------------------------
+6. Generic Class
+------------------------------------------------------------
+
+Generic class គឺ class ដែលទទួល type ពីខាងក្រៅ។
+
+    class Box<T> {
+        private T value;
+
+        public Box(T value) {
+            this.value = value;
+        }
+
+        public T getValue() {
+            return value;
+        }
+
+        public void showType() {
+            System.out.println("Value: " + value);
+            System.out.println("Type: " + value.getClass().getSimpleName());
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Box<String> stringBox = new Box<>("Hello Java");
+            Box<Integer> intBox = new Box<>(100);
+            Box<Double> doubleBox = new Box<>(99.99);
+
+            stringBox.showType();
+            intBox.showType();
+            doubleBox.showType();
+        }
+    }
+
+Output:
+
+    Value: Hello Java
+    Type: String
+    Value: 100
+    Type: Integer
+    Value: 99.99
+    Type: Double
+
+------------------------------------------------------------
+7. Real Example: ApiResponse<T>
+------------------------------------------------------------
+
+ក្នុង backend/API project យើងប្រើ Generic ជាញឹកញាប់សម្រាប់ response។
+
+    class ApiResponse<T> {
+        private boolean success;
+        private String message;
+        private T data;
+
+        public ApiResponse(boolean success, String message, T data) {
+            this.success = success;
+            this.message = message;
+            this.data = data;
+        }
+
+        public void printResponse() {
+            System.out.println("Success: " + success);
+            System.out.println("Message: " + message);
+            System.out.println("Data: " + data);
+        }
+    }
+
+    class User {
+        private String name;
+        private String email;
+
+        public User(String name, String email) {
+            this.name = name;
+            this.email = email;
+        }
+
+        public String toString() {
+            return name + " - " + email;
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            User user = new User("Makara", "makara@gmail.com");
+
+            ApiResponse<User> userResponse =
+                    new ApiResponse<>(true, "User found", user);
+
+            ApiResponse<String> loginResponse =
+                    new ApiResponse<>(true, "Login success", "token_123456");
+
+            ApiResponse<Integer> countResponse =
+                    new ApiResponse<>(true, "Total users", 50);
+
+            userResponse.printResponse();
+            loginResponse.printResponse();
+            countResponse.printResponse();
+        }
+    }
+
+Real usage:
+
+    ApiResponse<User>
+    ApiResponse<Product>
+    ApiResponse<Order>
+    ApiResponse<List<User>>
+    ApiResponse<String>
+
+------------------------------------------------------------
+8. Generic Method
+------------------------------------------------------------
+
+Method ក៏អាចប្រើ Generic បាន។
+
+    public class Main {
+
+        public static <T> void printData(T data) {
+            System.out.println("Data: " + data);
+            System.out.println("Type: " + data.getClass().getSimpleName());
+        }
+
+        public static void main(String[] args) {
+            printData("Makara");
+            printData(100);
+            printData(99.99);
+            printData(true);
+        }
+    }
+
+សម្គាល់:
+- <T> ត្រូវសរសេរមុន return type។
+- នៅ example ខាងលើ return type គឺ void។
+
+------------------------------------------------------------
+9. Generic Method With Return Type
+------------------------------------------------------------
+
+    public class Main {
+
+        public static <T> T getFirst(T[] items) {
+            return items[0];
+        }
+
+        public static void main(String[] args) {
+            String[] names = {"Makara", "Dara", "Sokha"};
+            Integer[] numbers = {10, 20, 30};
+
+            String firstName = getFirst(names);
+            Integer firstNumber = getFirst(numbers);
+
+            System.out.println(firstName);
+            System.out.println(firstNumber);
+        }
+    }
+
+Output:
+
+    Makara
+    10
+
+------------------------------------------------------------
+10. Multiple Generic Types
+------------------------------------------------------------
+
+យើងអាចប្រើ Generic type ច្រើនជាងមួយបាន។
+
+    class Pair<K, V> {
+        private K key;
+        private V value;
+
+        public Pair(K key, V value) {
+            this.key = key;
+            this.value = value;
+        }
+
+        public void show() {
+            System.out.println(key + " = " + value);
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Pair<Integer, String> user = new Pair<>(1, "Makara");
+            Pair<String, Double> product = new Pair<>("iPhone", 999.99);
+
+            user.show();
+            product.show();
+        }
+    }
+
+Output:
+
+    1 = Makara
+    iPhone = 999.99
+
+Real examples:
+
+    Map<Integer, String> users;
+    Map<String, Double> productPrices;
+    Map<String, List<Product>> productsByCategory;
+
+------------------------------------------------------------
+11. Bounded Generic
+------------------------------------------------------------
+
+ពេលខ្លះយើងមិនចង់ឲ្យ Generic ទទួលគ្រប់ type ទេ។
+
+Example: Calculator គួរទទួលតែ Number type ដូចជា Integer, Double, Float។
+
+Formula:
+
+    <T extends Number>
+
+Example:
+
+    class Calculator<T extends Number> {
+        private T number1;
+        private T number2;
+
+        public Calculator(T number1, T number2) {
+            this.number1 = number1;
+            this.number2 = number2;
+        }
+
+        public double sum() {
+            return number1.doubleValue() + number2.doubleValue();
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Calculator<Integer> intCalc = new Calculator<>(10, 20);
+            Calculator<Double> doubleCalc = new Calculator<>(5.5, 4.5);
+
+            System.out.println(intCalc.sum());
+            System.out.println(doubleCalc.sum());
+
+            // Calculator<String> wrong = new Calculator<>("A", "B"); // Error
+        }
+    }
+
+Output:
+
+    30.0
+    10.0
+
+------------------------------------------------------------
+12. Generic Interface
+------------------------------------------------------------
+
+Interface ក៏អាចប្រើ Generic បាន។
+
+    interface Repository<T, ID> {
+        void save(T item);
+        T findById(ID id);
+    }
+
+Full example:
+
+    interface Repository<T, ID> {
+        void save(T item);
+        T findById(ID id);
+    }
+
+    class User {
+        int id;
+        String name;
+
+        public User(int id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+
+        public String toString() {
+            return id + " - " + name;
+        }
+    }
+
+    class UserRepository implements Repository<User, Integer> {
+
+        @Override
+        public void save(User user) {
+            System.out.println("Saving user: " + user);
+        }
+
+        @Override
+        public User findById(Integer id) {
+            return new User(id, "Makara");
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Repository<User, Integer> repo = new UserRepository();
+
+            repo.save(new User(1, "Dara"));
+
+            User user = repo.findById(10);
+            System.out.println(user);
+        }
+    }
+
+Real professional concept:
+
+    Repository<User, Integer>
+    Repository<Product, Long>
+    Repository<Order, String>
+
+------------------------------------------------------------
+13. Real Example: Generic CRUD Service
+------------------------------------------------------------
+
+    interface CrudService<T, ID> {
+        void create(T item);
+        T getById(ID id);
+        void update(ID id, T item);
+        void delete(ID id);
+    }
+
+    class Product {
+        private int id;
+        private String name;
+        private double price;
+
+        public Product(int id, String name, double price) {
+            this.id = id;
+            this.name = name;
+            this.price = price;
+        }
+
+        public String toString() {
+            return id + " - " + name + " - $" + price;
+        }
+    }
+
+    class ProductService implements CrudService<Product, Integer> {
+
+        @Override
+        public void create(Product product) {
+            System.out.println("Create product: " + product);
+        }
+
+        @Override
+        public Product getById(Integer id) {
+            return new Product(id, "Laptop", 850.0);
+        }
+
+        @Override
+        public void update(Integer id, Product product) {
+            System.out.println("Update product id " + id + ": " + product);
+        }
+
+        @Override
+        public void delete(Integer id) {
+            System.out.println("Delete product id: " + id);
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            CrudService<Product, Integer> productService = new ProductService();
+
+            productService.create(new Product(1, "Phone", 500));
+            System.out.println(productService.getById(1));
+            productService.update(1, new Product(1, "Phone Pro", 700));
+            productService.delete(1);
+        }
+    }
+
+------------------------------------------------------------
+14. Wildcard Generic: ?
+------------------------------------------------------------
+
+? មានន័យថា unknown type។
+
+    import java.util.List;
+
+    public class Main {
+
+        public static void printList(List<?> items) {
+            for (Object item : items) {
+                System.out.println(item);
+            }
+        }
+
+        public static void main(String[] args) {
+            List<String> names = List.of("Makara", "Dara");
+            List<Integer> numbers = List.of(10, 20, 30);
+
+            printList(names);
+            printList(numbers);
+        }
+    }
+
+List<?> អាចទទួល List type អ្វីក៏បាន។
+
+------------------------------------------------------------
+15. Upper Bounded Wildcard: ? extends
+------------------------------------------------------------
+
+ប្រើពេលយើងចង់ read data ពី child classes របស់ parent មួយ។
+
+    import java.util.List;
+
+    class Animal {
+        public void eat() {
+            System.out.println("Animal eating");
+        }
+    }
+
+    class Dog extends Animal {
+    }
+
+    class Cat extends Animal {
+    }
+
+    public class Main {
+
+        public static void feedAnimals(List<? extends Animal> animals) {
+            for (Animal animal : animals) {
+                animal.eat();
+            }
+        }
+
+        public static void main(String[] args) {
+            List<Dog> dogs = List.of(new Dog(), new Dog());
+            List<Cat> cats = List.of(new Cat());
+
+            feedAnimals(dogs);
+            feedAnimals(cats);
+        }
+    }
+
+ចំណាំ:
+- ? extends Animal ល្អសម្រាប់ read data។
+- វាអាចទទួល List<Animal>, List<Dog>, List<Cat>។
+
+------------------------------------------------------------
+16. Lower Bounded Wildcard: ? super
+------------------------------------------------------------
+
+ប្រើពេលយើងចង់ add/write data ទៅ list។
+
+    import java.util.ArrayList;
+    import java.util.List;
+
+    class Animal {
+    }
+
+    class Dog extends Animal {
+        public String toString() {
+            return "Dog";
+        }
+    }
+
+    public class Main {
+
+        public static void addDogs(List<? super Dog> animals) {
+            animals.add(new Dog());
+            animals.add(new Dog());
+        }
+
+        public static void main(String[] args) {
+            List<Animal> animals = new ArrayList<>();
+
+            addDogs(animals);
+
+            System.out.println(animals);
+        }
+    }
+
+Rule សំខាន់:
+
+    PECS
+    Producer Extends
+    Consumer Super
+
+Meaning:
+
+    Read data  -> ? extends Type
+    Add data   -> ? super Type
+
+------------------------------------------------------------
+17. Common Mistake
+------------------------------------------------------------
+
+List<Dog> មិនមែនជា List<Animal> ទេ។
+
+    class Animal {}
+    class Dog extends Animal {}
+    class Cat extends Animal {}
+
+    // List<Animal> animals = new ArrayList<Dog>(); // Error
+
+ហេតុអ្វី error?
+
+ព្រោះបើ Java អនុញ្ញាត:
+
+    List<Dog> dogs = new ArrayList<>();
+    List<Animal> animals = dogs;
+    animals.add(new Cat()); // Cat ចូលទៅក្នុង List<Dog>
+
+ដូច្នេះ Java មិនអនុញ្ញាត។
+
+Solution:
+
+    List<? extends Animal> animals;
+
+------------------------------------------------------------
+18. Generic With List of Objects
+------------------------------------------------------------
+
+    import java.util.ArrayList;
+    import java.util.List;
+
+    class Student {
+        private String name;
+        private int score;
+
+        public Student(String name, int score) {
+            this.name = name;
+            this.score = score;
+        }
+
+        public String toString() {
+            return name + " - " + score;
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            List<Student> students = new ArrayList<>();
+
+            students.add(new Student("Makara", 90));
+            students.add(new Student("Dara", 85));
+            students.add(new Student("Sokha", 95));
+
+            for (Student student : students) {
+                System.out.println(student);
+            }
+        }
+    }
+
+------------------------------------------------------------
+19. Generic Pagination Example
+------------------------------------------------------------
+
+Real API project ច្រើនប្រើ PageResponse<T>។
+
+    import java.util.List;
+
+    class PageResponse<T> {
+        private List<T> items;
+        private int page;
+        private int limit;
+        private int total;
+
+        public PageResponse(List<T> items, int page, int limit, int total) {
+            this.items = items;
+            this.page = page;
+            this.limit = limit;
+            this.total = total;
+        }
+
+        public void print() {
+            System.out.println("Page: " + page);
+            System.out.println("Limit: " + limit);
+            System.out.println("Total: " + total);
+            System.out.println("Items: " + items);
+        }
+    }
+
+    class Product {
+        private String name;
+
+        public Product(String name) {
+            this.name = name;
+        }
+
+        public String toString() {
+            return name;
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            List<Product> products = List.of(
+                    new Product("Phone"),
+                    new Product("Laptop"),
+                    new Product("Mouse")
+            );
+
+            PageResponse<Product> productPage =
+                    new PageResponse<>(products, 1, 10, 3);
+
+            productPage.print();
+        }
+    }
+
+------------------------------------------------------------
+20. Generic Utility Class
+------------------------------------------------------------
+
+    class Validator<T> {
+        public boolean isNull(T value) {
+            return value == null;
+        }
+
+        public boolean isNotNull(T value) {
+            return value != null;
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Validator<String> stringValidator = new Validator<>();
+            Validator<Integer> intValidator = new Validator<>();
+
+            System.out.println(stringValidator.isNull(null));
+            System.out.println(stringValidator.isNotNull("Makara"));
+            System.out.println(intValidator.isNotNull(100));
+        }
+    }
+
+------------------------------------------------------------
+21. Generic With Static Method
+------------------------------------------------------------
+
+Static method អាចប្រើ Generic បាន ប៉ុន្តែត្រូវ declare <T> នៅលើ method ផ្ទាល់។
+
+    class Utils {
+        public static <T> void printArray(T[] array) {
+            for (T item : array) {
+                System.out.println(item);
+            }
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            String[] names = {"Makara", "Dara"};
+            Integer[] numbers = {1, 2, 3};
+
+            Utils.printArray(names);
+            Utils.printArray(numbers);
+        }
+    }
+
+------------------------------------------------------------
+22. Generic Limitations
+------------------------------------------------------------
+
+22.1 Cannot use primitive type
+
+Wrong:
+
+    ArrayList<int> numbers = new ArrayList<>();
+
+Correct:
+
+    ArrayList<Integer> numbers = new ArrayList<>();
+
+Primitive and Wrapper:
+
+    int     -> Integer
+    double  -> Double
+    boolean -> Boolean
+    char    -> Character
+
+22.2 Cannot create object from T directly
+
+    class Box<T> {
+        public void create() {
+            // T obj = new T(); // Error
+        }
+    }
+
+ហេតុផល:
+- Java Generic ប្រើ type erasure។
+- Runtime មិនស្គាល់ថា T ជា class អ្វីពិតប្រាកដ។
+
+------------------------------------------------------------
+23. Type Erasure
+------------------------------------------------------------
+
+Java Generic check type នៅ compile time។ ពេល runtime generic type ត្រូវបាន erase/remove។
+
+Example:
+
+    List<String> names = new ArrayList<>();
+    List<Integer> numbers = new ArrayList<>();
+
+Runtime ប្រហែលជា:
+
+    List names = new ArrayList();
+    List numbers = new ArrayList();
+
+ហេតុនេះហើយ Java មិនអាច new T() បាន។
+
+------------------------------------------------------------
+24. When Use Generic?
+------------------------------------------------------------
+
+ប្រើ Generic ពេល:
+
+1. Class មួយត្រូវ support many types
+   Example: Box<T>
+
+2. API response data អាចខុសៗគ្នា
+   Example: ApiResponse<T>
+
+3. Repository support many models
+   Example: Repository<T, ID>
+
+4. Utility method reusable
+   Example: <T> printData(T data)
+
+5. Collections need type safety
+   Example: List<User>
+
+6. Pagination response reusable
+   Example: PageResponse<T>
+
+------------------------------------------------------------
+25. Real Backend Structure With Generic
+------------------------------------------------------------
+
+    class ApiResponse<T> {
+        boolean success;
+        String message;
+        T data;
+    }
+
+    class PageResponse<T> {
+        List<T> items;
+        int page;
+        int total;
+    }
+
+    interface Repository<T, ID> {
+        void save(T item);
+        T findById(ID id);
+    }
+
+    interface Service<T, ID> {
+        T getById(ID id);
+        void create(T item);
+    }
+
+នេះគឺជា pattern ដែលជួបច្រើនក្នុង Spring Boot project។
+
+------------------------------------------------------------
+26. Mini Exercises
+------------------------------------------------------------
+
+Exercise 1:
+Create generic class Box<T> with:
+
+    value
+    getValue()
+    setValue()
+    show()
+
+Test with:
+
+    Box<String>
+    Box<Integer>
+    Box<Double>
+
+Exercise 2:
+Create generic class Pair<K, V> for:
+
+    studentId -> studentName
+    productName -> price
+    email -> userObject
+
+Exercise 3:
+Create generic class ApiResponse<T> with fields:
+
+    success
+    message
+    data
+
+Test with:
+
+    ApiResponse<String>
+    ApiResponse<Integer>
+    ApiResponse<User>
+
+Exercise 4:
+Create generic interface CrudRepository<T, ID> with methods:
+
+    void save(T item);
+    T findById(ID id);
+    void deleteById(ID id);
+
+Then implement:
+
+    UserRepository implements CrudRepository<User, Integer>
+    ProductRepository implements CrudRepository<Product, Long>
+
+------------------------------------------------------------
+27. Summary Formula
+------------------------------------------------------------
+
+    class ClassName<T> { }
+    interface InterfaceName<T> { }
+    public static <T> void methodName(T value) { }
+    class Pair<K, V> { }
+    class Calculator<T extends Number> { }
+    List<?> items
+    List<? extends Animal> items
+    List<? super Dog> items
+
+Meaning:
+
+    T = flexible type
+    <T extends Number> = accept only Number types
+    ? = unknown type
+    ? extends = read
+    ? super = write/add
+
+Final idea:
+Generic ធ្វើឲ្យ code របស់យើង safe, reusable, clean, professional។

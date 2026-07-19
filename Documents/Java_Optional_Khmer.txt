@@ -1,0 +1,179 @@
+Java Optional - Khmer Notes
+===========================
+
+មេរៀននេះរៀបចំជា text note សម្រាប់រៀន Java Advanced ជាភាសាខ្មែរ។
+
+1. Optional គឺជាអ្វី?
+------------------------------------------------------------
+Optional<T> គឺជា container សម្រាប់ value ដែលអាច “មាន” ឬ “គ្មាន”។ វាជួយ reduce NullPointerException និងធ្វើឲ្យ method បង្ហាញច្បាស់ថា result អាចរកមិនឃើញ។
+
+Example:
+    Optional<String> name = Optional.of("Makara");
+    Optional<String> empty = Optional.empty();
+
+2. Where / When Use
+------------------------------------------------------------
+Use Optional នៅ Repository/Service method ដែល result អាចគ្មាន:
+    Optional<User> findById(int id)
+    Optional<User> findByEmail(String email)
+    Optional<Product> findBySlug(String slug)
+
+កុំប្រើ Optional ជា field ឬ parameter ពេក:
+    // Not recommended
+    private Optional<String> email;
+    public void login(Optional<String> email) { }
+
+3. Problem Without Optional
+------------------------------------------------------------
+    class UserRepository {
+        public String findNameById(int id) {
+            if (id == 1) return "Makara";
+            return null;
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            UserRepository repo = new UserRepository();
+            String name = repo.findNameById(2);
+            System.out.println(name.toUpperCase()); // NullPointerException
+        }
+    }
+
+4. With Optional
+------------------------------------------------------------
+    import java.util.Optional;
+
+    class UserRepository {
+        public Optional<String> findNameById(int id) {
+            if (id == 1) return Optional.of("Makara");
+            return Optional.empty();
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            UserRepository repo = new UserRepository();
+            String name = repo.findNameById(2).orElse("Guest");
+            System.out.println(name);
+        }
+    }
+
+Output:
+    Guest
+
+5. Creating Optional
+------------------------------------------------------------
+    Optional.of(value)          // value must not be null
+    Optional.ofNullable(value)  // value can be null
+    Optional.empty()            // no value
+
+Example:
+    String email = null;
+    Optional<String> optionalEmail = Optional.ofNullable(email);
+
+6. Important Methods
+------------------------------------------------------------
+isPresent():
+    if (optional.isPresent()) {
+        System.out.println(optional.get());
+    }
+
+ifPresent():
+    optional.ifPresent(value -> System.out.println(value));
+
+ifPresentOrElse():
+    optional.ifPresentOrElse(
+        value -> System.out.println(value),
+        () -> System.out.println("No value")
+    );
+
+orElse():
+    String result = optional.orElse("Default");
+
+orElseGet():
+    String result = optional.orElseGet(() -> "Generated default");
+
+orElseThrow():
+    User user = userRepository.findById(1)
+        .orElseThrow(() -> new RuntimeException("User not found"));
+
+7. map(), flatMap(), filter()
+------------------------------------------------------------
+map() transform value:
+    Optional<String> name = Optional.of("makara");
+    Optional<String> upper = name.map(value -> value.toUpperCase());
+
+filter() keep value when condition true:
+    Optional<Integer> age = Optional.of(20);
+    Optional<Integer> adult = age.filter(value -> value >= 18);
+
+flatMap() use when method already returns Optional:
+    Optional<String> email = userOptional.flatMap(user -> user.getEmail());
+
+8. Real Example: Login
+------------------------------------------------------------
+    import java.util.Optional;
+
+    class User {
+        private String email;
+        private String password;
+        private boolean active;
+
+        public User(String email, String password, boolean active) {
+            this.email = email;
+            this.password = password;
+            this.active = active;
+        }
+
+        public String getPassword() { return password; }
+        public boolean isActive() { return active; }
+    }
+
+    class UserRepository {
+        public Optional<User> findByEmail(String email) {
+            if (email.equals("makara@gmail.com")) {
+                return Optional.of(new User(email, "123456", true));
+            }
+            return Optional.empty();
+        }
+    }
+
+    class AuthService {
+        private UserRepository repo = new UserRepository();
+
+        public String login(String email, String password) {
+            User user = repo.findByEmail(email)
+                .filter(User::isActive)
+                .orElseThrow(() -> new RuntimeException("User not found or inactive"));
+
+            if (!user.getPassword().equals(password)) {
+                throw new RuntimeException("Invalid password");
+            }
+
+            return "Login success";
+        }
+    }
+
+9. Common Mistakes
+------------------------------------------------------------
+- optional.get() ដោយមិន check value
+- method return Optional ប៉ុន្តែ return null
+- Optional<List<T>> ជំនួស List<T>
+- Optional as parameter
+
+Better:
+    List<User> findAll() {
+        return List.of(); // empty list, not Optional<List<User>>
+    }
+
+10. Exercises
+------------------------------------------------------------
+1. Create Optional<String> findNameById(int id)
+2. Use orElse("Guest")
+3. Use orElseThrow for user not found
+4. Use map to convert name to uppercase
+5. Use filter to check active user
+
+Summary:
+Optional ជួយឲ្យ code handle missing value ដោយ clean និង safe។

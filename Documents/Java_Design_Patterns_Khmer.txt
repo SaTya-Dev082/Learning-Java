@@ -1,0 +1,340 @@
+Java Design Patterns - Khmer Notes
+=================================
+
+មេរៀននេះរៀបចំជា text note សម្រាប់រៀន Java Advanced ជាភាសាខ្មែរ។
+
+1. Design Pattern គឺជាអ្វី?
+------------------------------------------------------------
+Design Pattern គឺជា solution pattern សម្រាប់ problem ដែលជួបញឹកញាប់ក្នុង software design។
+
+It is not a library. It is an idea/template.
+
+Use patterns to make code:
+    reusable
+    flexible
+    readable
+    easy to maintain
+    easy to test
+
+2. Pattern Categories
+------------------------------------------------------------
+Creational:
+    Singleton, Factory, Builder
+
+Structural:
+    Adapter, Facade, Decorator
+
+Behavioral:
+    Strategy, Observer, Command
+
+Architectural:
+    MVC, Repository, Service Layer
+
+3. Singleton Pattern
+------------------------------------------------------------
+One instance only.
+
+    class AppConfig {
+        private static final AppConfig INSTANCE = new AppConfig();
+
+        private AppConfig() {}
+
+        public static AppConfig getInstance() {
+            return INSTANCE;
+        }
+
+        public String getAppName() {
+            return "Java App";
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            AppConfig c1 = AppConfig.getInstance();
+            AppConfig c2 = AppConfig.getInstance();
+            System.out.println(c1 == c2);
+        }
+    }
+
+Use:
+    config
+    logger
+    shared manager
+
+Do not overuse Singleton because it can make testing harder.
+
+4. Factory Pattern
+------------------------------------------------------------
+Factory creates object based on type.
+
+    interface Payment {
+        void pay(double amount);
+    }
+
+    class CashPayment implements Payment {
+        public void pay(double amount) {
+            System.out.println("Cash: " + amount);
+        }
+    }
+
+    class AbaPayment implements Payment {
+        public void pay(double amount) {
+            System.out.println("ABA: " + amount);
+        }
+    }
+
+    class PaymentFactory {
+        public static Payment create(String type) {
+            if (type.equalsIgnoreCase("cash")) return new CashPayment();
+            if (type.equalsIgnoreCase("aba")) return new AbaPayment();
+            throw new IllegalArgumentException("Invalid payment type");
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Payment payment = PaymentFactory.create("aba");
+            payment.pay(100);
+        }
+    }
+
+Use:
+    payment method
+    notification type
+    file exporter
+
+5. Builder Pattern
+------------------------------------------------------------
+Builder creates complex object step by step.
+
+    class User {
+        private String name;
+        private String email;
+        private String phone;
+
+        private User(Builder builder) {
+            this.name = builder.name;
+            this.email = builder.email;
+            this.phone = builder.phone;
+        }
+
+        static class Builder {
+            private String name;
+            private String email;
+            private String phone;
+
+            public Builder name(String name) {
+                this.name = name;
+                return this;
+            }
+
+            public Builder email(String email) {
+                this.email = email;
+                return this;
+            }
+
+            public Builder phone(String phone) {
+                this.phone = phone;
+                return this;
+            }
+
+            public User build() {
+                return new User(this);
+            }
+        }
+    }
+
+Use:
+    User user = new User.Builder()
+        .name("Makara")
+        .email("makara@gmail.com")
+        .phone("012345678")
+        .build();
+
+Use when object has many optional fields.
+
+6. Strategy Pattern
+------------------------------------------------------------
+Strategy changes algorithm/logic at runtime.
+
+    interface DiscountStrategy {
+        double apply(double total);
+    }
+
+    class NoDiscount implements DiscountStrategy {
+        public double apply(double total) { return total; }
+    }
+
+    class VipDiscount implements DiscountStrategy {
+        public double apply(double total) { return total * 0.8; }
+    }
+
+    class CheckoutService {
+        public double checkout(double total, DiscountStrategy strategy) {
+            return strategy.apply(total);
+        }
+    }
+
+Use:
+    discount
+    shipping fee
+    payment calculation
+    tax calculation
+
+Lambda:
+    service.checkout(100, total -> total * 0.9);
+
+7. Observer Pattern
+------------------------------------------------------------
+Many listeners react to one event.
+
+    import java.util.*;
+
+    interface OrderObserver {
+        void onOrderCreated(String orderId);
+    }
+
+    class EmailObserver implements OrderObserver {
+        public void onOrderCreated(String orderId) {
+            System.out.println("Email for " + orderId);
+        }
+    }
+
+    class SmsObserver implements OrderObserver {
+        public void onOrderCreated(String orderId) {
+            System.out.println("SMS for " + orderId);
+        }
+    }
+
+    class OrderService {
+        private List<OrderObserver> observers = new ArrayList<>();
+
+        public void addObserver(OrderObserver observer) {
+            observers.add(observer);
+        }
+
+        public void createOrder(String orderId) {
+            System.out.println("Order created");
+            for (OrderObserver observer : observers) {
+                observer.onOrderCreated(orderId);
+            }
+        }
+    }
+
+Use:
+    notification
+    event system
+    UI listener
+
+8. Adapter Pattern
+------------------------------------------------------------
+Adapter converts third-party API to your app interface.
+
+    interface PaymentProcessor {
+        void pay(double amount);
+    }
+
+    class ThirdPartyAbaApi {
+        public void makePayment(double amount) {
+            System.out.println("ABA API: " + amount);
+        }
+    }
+
+    class AbaPaymentAdapter implements PaymentProcessor {
+        private ThirdPartyAbaApi api = new ThirdPartyAbaApi();
+
+        public void pay(double amount) {
+            api.makePayment(amount);
+        }
+    }
+
+Use when integrating external/legacy system.
+
+9. Facade Pattern
+------------------------------------------------------------
+Facade provides simple interface for complex process.
+
+    class InventoryService { void checkStock() { System.out.println("Stock checked"); } }
+    class PaymentService { void pay() { System.out.println("Paid"); } }
+    class NotificationService { void notifyCustomer() { System.out.println("Notified"); } }
+
+    class CheckoutFacade {
+        private InventoryService inventory = new InventoryService();
+        private PaymentService payment = new PaymentService();
+        private NotificationService notification = new NotificationService();
+
+        public void checkout() {
+            inventory.checkStock();
+            payment.pay();
+            notification.notifyCustomer();
+        }
+    }
+
+10. Repository Pattern
+------------------------------------------------------------
+Repository separates database logic.
+
+    import java.util.Optional;
+
+    interface UserRepository {
+        void save(User user);
+        Optional<User> findByEmail(String email);
+    }
+
+    class UserService {
+        private UserRepository repository;
+
+        public UserService(UserRepository repository) {
+            this.repository = repository;
+        }
+    }
+
+11. Service Layer Pattern
+------------------------------------------------------------
+Service layer contains business logic.
+Controller should call service, not database directly.
+
+    class UserController {
+        private UserService userService;
+
+        public void register() {
+            userService.register();
+        }
+    }
+
+    class UserService {
+        public void register() {
+            // validate, save, send email
+        }
+    }
+
+12. When Use Which Pattern?
+------------------------------------------------------------
+Singleton -> one shared instance
+Factory -> create object by type
+Builder -> complex object
+Strategy -> change algorithm
+Observer -> event listeners
+Adapter -> third-party integration
+Facade -> simplify complex workflow
+Repository -> database logic
+Service Layer -> business logic
+
+13. Common Mistakes
+------------------------------------------------------------
+- overengineering small app
+- putting business logic in factory
+- SQL inside service/controller
+- using Singleton for mutable data
+- using pattern without real problem
+
+14. Exercises
+------------------------------------------------------------
+1. PaymentFactory: cash, aba, wing
+2. DiscountStrategy: normal, VIP, no discount
+3. User Builder
+4. OrderObserver: email, sms, telegram
+5. CheckoutFacade
+
+Summary:
+Design Patterns help organize code professionally, but use them only when they solve real problems.
