@@ -1,6 +1,8 @@
 Java Lambda Expression Lesson - Khmer Notes
 ===========================================
 
+Learning section 8. Lambda With Collections (220)
+
 មេរៀននេះសម្រាប់រៀន Java Lambda Expression ពីគោលគំនិត ដល់ real examples ដែលប្រើក្នុង project ពិតៗ។
 
 ------------------------------------------------------------
@@ -156,7 +158,7 @@ Output:
     (text) -> System.out.println(text)
 
 ------------------------------------------------------------
-6. Lambda With Multiple Parameters
+6. Lambda With Multiple Pa rameters
 ------------------------------------------------------------
 
     @FunctionalInterface
@@ -215,7 +217,7 @@ Output:
 - បើមានតែ expression មួយ line អាចមិនសរសេរ return បាន។
 
 ------------------------------------------------------------
-8. Lambda With Collections
+8. Lambda With Collections 
 ------------------------------------------------------------
 
 Lambda ត្រូវបានប្រើច្រើនជាមួយ List។

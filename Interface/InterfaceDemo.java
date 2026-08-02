@@ -1,5 +1,6 @@
 package Interface;
 
+
 // Definition: Interface គឺជា contract/rule។ Class ដែល implements interface ត្រូវតែសរសេរ method ដែល interface បានកំណត់។
 
 // Where use: Service layer, Repository layer, Payment Gateway, Notification.
