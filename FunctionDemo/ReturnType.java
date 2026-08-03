@@ -1,4 +1,4 @@
-package Function;
+package FunctionDemo;
 
 public class ReturnType {
     public static void main(String[] args){

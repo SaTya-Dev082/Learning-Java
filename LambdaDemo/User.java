@@ -1,4 +1,4 @@
-package Lamda;
+package LambdaDemo;
 
 public class User {
     String name;

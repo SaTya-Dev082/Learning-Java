@@ -1,4 +1,4 @@
-package Lamda;
+package LambdaDemo;
 
 import java.util.function.Supplier;
 

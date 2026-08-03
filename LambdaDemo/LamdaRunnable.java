@@ -1,4 +1,4 @@
-package Lamda;
+package LambdaDemo;
 
 public class LamdaRunnable {
     public static void main(String[] args){
@@ -12,5 +12,9 @@ public class LamdaRunnable {
             
         };
         new Thread(runner).start();
+
+        Runnable task = () -> System.out.println("Task running...");
+
+        new Thread(task).start();
     }
 }

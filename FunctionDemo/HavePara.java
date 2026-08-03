@@ -1,4 +1,4 @@
-package Function;
+package FunctionDemo;
 
 public class HavePara {
     
