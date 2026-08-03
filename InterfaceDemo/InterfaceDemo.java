@@ -1,4 +1,4 @@
-package Interface;
+package InterfaceDemo;
 
 
 // Definition: Interface គឺជា contract/rule។ Class ដែល implements interface ត្រូវតែសរសេរ method ដែល interface បានកំណត់។

@@ -74,3 +74,8 @@ Main.java
 ```
 
 If the file name is different, Java will show an error.
+
+
+
+Java Documents:
+1- Completed section Lambda(03-August-2026)

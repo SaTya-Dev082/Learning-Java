@@ -1,8 +1,6 @@
 Java Lambda Expression Lesson - Khmer Notes
 ===========================================
 
-Learning section 8. Lambda With Collections (220)
-
 មេរៀននេះសម្រាប់រៀន Java Lambda Expression ពីគោលគំនិត ដល់ real examples ដែលប្រើក្នុង project ពិតៗ។
 
 ------------------------------------------------------------
