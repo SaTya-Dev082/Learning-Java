@@ -1,4 +1,4 @@
-Java Generics Lesson - Khmer Notes (11)
+Java Generics Lesson - Khmer Notes
 =================================
 
 មេរៀននេះសម្រាប់រៀន Java Generics ពីគោលគំនិត ដល់ real examples ដែលប្រើក្នុង project ពិតៗ។
